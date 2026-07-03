@@ -1,0 +1,20 @@
+CREATE TABLE orders (
+    id              BIGINT       NOT NULL AUTO_INCREMENT,
+    order_number    VARCHAR(50)  NOT NULL,
+    product_amount  BIGINT       NOT NULL,
+    shipping_fee    BIGINT       NOT NULL,
+    discount_amount BIGINT       NOT NULL,
+    final_amount    BIGINT       NOT NULL,
+    status          VARCHAR(50)  NOT NULL,
+    ordered_at      DATETIME     NOT NULL,
+    cancelled_at    DATETIME     NULL,
+    created_at      DATETIME     NOT NULL,
+    updated_at      DATETIME     NULL,
+    deleted_at      DATETIME     NULL,
+    member_id       BIGINT       NOT NULL,
+    user_coupon_id  BIGINT       NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_orders_order_number UNIQUE (order_number),
+    CONSTRAINT fk_orders_member FOREIGN KEY (member_id) REFERENCES member (id),
+    CONSTRAINT fk_orders_user_coupon FOREIGN KEY (user_coupon_id) REFERENCES user_coupon (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

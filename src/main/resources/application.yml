@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: snackdeal-backand
+
+  profiles:
+    active: mysql,redis,dev
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: profile, email
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+custom:
+  jwt:
+    secrets:
+      app-key: ${JWT_APP_KEY}
+    expiration: ${JWT_EXPIRATION:900000}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+  mail:
+    from: ${MAIL_USERNAME}
+
+  email-verification:
+    code-expiration: ${EMAIL_CODE_EXPIRATION:300000}
+    token-expiration: ${EMAIL_TOKEN_EXPIRATION:1800000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}

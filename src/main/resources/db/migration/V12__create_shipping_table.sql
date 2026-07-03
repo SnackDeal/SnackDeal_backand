@@ -1,0 +1,20 @@
+CREATE TABLE shipping (
+    id                BIGINT       NOT NULL AUTO_INCREMENT,
+    order_id          BIGINT       NOT NULL,
+    receiver_name     VARCHAR(50)  NOT NULL,
+    receiver_phone    VARCHAR(20)  NOT NULL,
+    zipcode           VARCHAR(10)  NOT NULL,
+    address           VARCHAR(255) NOT NULL,
+    detail_address    VARCHAR(255) NULL,
+    delivery_request  VARCHAR(100) NULL,
+    courier           VARCHAR(50)  NULL,
+    tracking_number   VARCHAR(100) NULL,
+    status            VARCHAR(50)  NOT NULL,
+    shipped_at        DATETIME     NULL,
+    delivered_at      DATETIME     NULL,
+    created_at        DATETIME     NOT NULL,
+    updated_at        DATETIME     NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_shipping_order UNIQUE (order_id),
+    CONSTRAINT fk_shipping_order FOREIGN KEY (order_id) REFERENCES orders (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
