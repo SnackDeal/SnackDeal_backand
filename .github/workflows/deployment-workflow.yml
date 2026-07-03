@@ -6,6 +6,7 @@ on:
   pull_request:
     branches:
       - main
+      - dev
     types:
       - closed   # PR이 merge됐을 때만
 
@@ -63,7 +64,7 @@ jobs:
 
   deploy:
     name: EC2 배포
-    runs-on: self-hosted
+    runs-on: [self-hosted, backend]
     needs: build-and-push
 
     steps:
