@@ -1,97 +1,111 @@
 package io.snackdeal.backand.api.user.member.controller;
 
-import io.snackdeal.backand.domain.member.service.MemberService;
+import io.snackdeal.backand.api.user.member.dto.MemberDescription;
+import io.snackdeal.backand.api.user.member.dto.MemberDetails;
+import io.snackdeal.backand.api.user.member.dto.MemberUpdateRequest;
+import io.snackdeal.backand.api.user.member.dto.SendCodeRequest;
+import io.snackdeal.backand.api.user.member.dto.SendCodeResponse;
+import io.snackdeal.backand.api.user.member.dto.VerifyCodeRequest;
+import io.snackdeal.backand.api.user.member.dto.VerifyCodeResponse;
+import io.snackdeal.backand.domain.member.entity.MemberRole;
 import io.snackdeal.backand.domain.member.service.AuthService;
 import io.snackdeal.backand.domain.member.service.EmailVerificationService;
-import tools.jackson.databind.ObjectMapper;
+import io.snackdeal.backand.domain.member.service.MemberService;
+import io.snackdeal.backand.global.config.dto.CommonResponse;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:test-config.properties")
+/**
+ * 컨트롤러 단위테스트: Spring 컨텍스트 없이 서비스 위임/응답 래핑만 검증한다.
+ */
+@ExtendWith(MockitoExtension.class)
 class MemberControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @InjectMocks
+    private MemberController memberController;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockitoBean
+    @Mock
     private MemberService memberService;
-
-    @MockitoBean
+    @Mock
     private AuthService authService;
-
-    @MockitoBean
+    @Mock
     private EmailVerificationService emailVerificationService;
 
-    @Disabled("TODO: implement")
-    @Test
-    @DisplayName("sendCode - TODO")
-    void sendCode_Success() throws Exception {
-        fail("not implemented");
+    private MemberDetails details() {
+        return new MemberDetails(1L, "user@test.com", "ENCODED", MemberRole.USER);
     }
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("verifyCode - TODO")
-    void verifyCode_Success() throws Exception {
-        fail("not implemented");
+    @DisplayName("sendCode - EmailVerificationService 결과를 그대로 감싸 반환한다")
+    void sendCode() {
+        SendCodeResponse expected = new SendCodeResponse(300);
+        when(emailVerificationService.sendCode("new@test.com")).thenReturn(expected);
+
+        CommonResponse<SendCodeResponse> response =
+                memberController.sendCode(new SendCodeRequest("new@test.com"));
+
+        assertTrue(response.isSuccess());
+        assertSame(expected, response.getData());
     }
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("join - TODO")
-    void join_Success() throws Exception {
-        fail("not implemented");
+    @DisplayName("verifyCode - 인증 토큰 응답을 그대로 반환한다")
+    void verifyCode() {
+        VerifyCodeResponse expected = new VerifyCodeResponse("token-123", 600);
+        when(emailVerificationService.verifyCode("a@test.com", "482913")).thenReturn(expected);
+
+        CommonResponse<VerifyCodeResponse> response =
+                memberController.verifyCode(new VerifyCodeRequest("a@test.com", "482913"));
+
+        assertSame(expected, response.getData());
     }
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("login - TODO")
-    void login_Success() throws Exception {
-        fail("not implemented");
+    @DisplayName("me - 인증된 사용자 이메일로 내 정보를 조회한다")
+    void me() {
+        MemberDescription expected = mockDescription();
+        when(memberService.findDescriptionByEmail("user@test.com")).thenReturn(expected);
+
+        CommonResponse<MemberDescription> response = memberController.me(details());
+
+        assertSame(expected, response.getData());
+        verify(memberService).findDescriptionByEmail("user@test.com");
     }
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("logout - TODO")
-    void logout_Success() throws Exception {
-        fail("not implemented");
+    @DisplayName("updateMe - 인증된 사용자 이메일과 요청으로 프로필을 수정한다")
+    void updateMe() {
+        MemberUpdateRequest request = new MemberUpdateRequest("01099998888", "old", "newP@ss1!");
+        MemberDescription expected = mockDescription();
+        when(memberService.updateProfile("user@test.com", request)).thenReturn(expected);
+
+        CommonResponse<MemberDescription> response = memberController.updateMe(details(), request);
+
+        assertSame(expected, response.getData());
+        verify(memberService).updateProfile("user@test.com", request);
     }
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("refresh - TODO")
-    void refresh_Success() throws Exception {
-        fail("not implemented");
+    @DisplayName("logout - 인증된 사용자 이메일로 로그아웃을 위임한다")
+    void logout() {
+        CommonResponse<Void> response = memberController.logout(details());
+
+        assertTrue(response.isSuccess());
+        verify(authService).logout("user@test.com");
     }
 
-    @Disabled("TODO: implement")
-    @Test
-    @DisplayName("me - TODO")
-    void me_Success() throws Exception {
-        fail("not implemented");
+    private MemberDescription mockDescription() {
+        return new MemberDescription(1L, "user@test.com", "홍길동", "01011112222",
+                null, null, null, MemberRole.USER, null, null);
     }
-
-    @Disabled("TODO: implement")
-    @Test
-    @DisplayName("updateMe - TODO")
-    void updateMe_Success() throws Exception {
-        fail("not implemented");
-    }
-
 }

@@ -19,6 +19,10 @@ public enum ResponseCode {
     EMAIL_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "M005", "인증코드가 일치하지 않습니다."),
     EMAIL_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "M006", "인증코드가 만료되었습니다."),
     EMAIL_TOKEN_INVALID(HttpStatus.BAD_REQUEST, "M007", "유효하지 않거나 만료된 인증 토큰입니다."),
+    EMAIL_RESEND_TOO_SOON(HttpStatus.TOO_MANY_REQUESTS, "M008", "인증코드는 60초 후에 다시 요청할 수 있습니다."),
+    SELF_STATUS_CHANGE_FORBIDDEN(HttpStatus.FORBIDDEN, "M009", "본인 계정의 상태는 변경할 수 없습니다."),
+    INVALID_MEMBER_STATUS_TRANSITION(HttpStatus.UNPROCESSABLE_ENTITY, "M010", "탈퇴한 회원의 상태는 변경할 수 없습니다."),
+    ACCOUNT_DELETED(HttpStatus.UNAUTHORIZED, "M011", "탈퇴한 계정입니다."),
 
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "A001", "비밀번호가 일치하지 않습니다."),
     USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "A002", "존재하지 않는 사용자입니다."),
