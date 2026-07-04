@@ -1,36 +1,37 @@
 package io.snackdeal.backand.api.admin.main.controller;
 
-import tools.jackson.databind.ObjectMapper;
+import io.snackdeal.backand.api.admin.main.dto.DashboardResponse;
+import io.snackdeal.backand.domain.dashboard.service.DashboardService;
+import io.snackdeal.backand.global.config.dto.CommonResponse;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:test-config.properties")
+@ExtendWith(MockitoExtension.class)
 class AdminDashboardControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @InjectMocks
+    private AdminDashboardController adminDashboardController;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Mock
+    private DashboardService dashboardService;
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("main - TODO")
-    void main_Success() throws Exception {
-        fail("not implemented");
-    }
+    @DisplayName("main - 대시보드 집계 결과를 그대로 감싸 반환한다")
+    void main() {
+        DashboardResponse expected = new DashboardResponse(12, 340000, 5, 3, 6);
+        when(dashboardService.getSummary()).thenReturn(expected);
 
+        CommonResponse<DashboardResponse> response = adminDashboardController.main();
+
+        assertTrue(response.isSuccess());
+        assertSame(expected, response.getData());
+    }
 }

@@ -38,3 +38,9 @@ out/
 .vscode/
 src/main/resources/*.properties
 src/test/resources/*.properties
+
+### 기타 ###
+프로젝트 기능
+.claude
+.docs
+/scripts/
