@@ -45,3 +45,7 @@ src/test/resources/*.properties
 .docs
 /scripts/
 /AGENTS.md
+<<<<<<< HEAD
+=======
+
+>>>>>>> dev
