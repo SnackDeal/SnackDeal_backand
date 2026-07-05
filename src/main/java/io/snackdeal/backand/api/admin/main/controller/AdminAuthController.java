@@ -7,6 +7,8 @@ import io.snackdeal.backand.api.user.member.dto.TokenResponse;
 import io.snackdeal.backand.domain.member.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,5 +30,13 @@ public class AdminAuthController {
     @PostMapping("/login")
     public CommonResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         return CommonResponse.success(authService.adminLogin(request));
+    }
+
+    // 관리자 로그아웃
+    @AdminMainApiDocs.AdminLogout
+    @PostMapping("/logout")
+    public CommonResponse<Void> logout(@AuthenticationPrincipal UserDetails userDetails) {
+        authService.logout(userDetails.getUsername());
+        return CommonResponse.success(null);
     }
 }

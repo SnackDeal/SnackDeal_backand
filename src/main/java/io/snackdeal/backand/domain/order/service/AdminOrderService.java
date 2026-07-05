@@ -164,10 +164,17 @@ public class AdminOrderService {
             restoreCoupon(order);
         }
 
+        // SHIPPED 전환 시 택배사/송장번호 저장
+        if (target == OrderStatus.SHIPPED) {
+            shippingRepository.findByOrderId(order.getId()).ifPresent(shipping ->
+                    shipping.updateTracking(request.courier(), request.trackingNumber()));
+        }
+
         order.changeStatusByAdmin(target);
         return new AdminOrderStatusResponse(
                 order.getId(), order.getOrderNumber(), order.getStatus(),
-                order.isManualOverride(), order.getUpdatedAt());
+                order.isManualOverride(), order.getUpdatedAt(),
+                request.courier(), request.trackingNumber(), request.memo());
     }
 
     /*
