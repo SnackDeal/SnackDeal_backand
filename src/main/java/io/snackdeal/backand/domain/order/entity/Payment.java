@@ -38,12 +38,32 @@ public class Payment {
     private Long orderId;
 
     @Builder
-    public Payment(Long amount, String pgProvider, Long orderId) {
+    public Payment(Long amount, String pgProvider, Long orderId, String merchantUid) {
         this.amount = amount;
         this.pgProvider = pgProvider;
         this.orderId = orderId;
+        this.merchantUid = merchantUid;
         this.status = PaymentStatus.READY;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // 결제 검증 성공 시 포트원에서 조회한 결제 정보로 PAID 확정한다.
+    public void markPaid(String impUid, String payMethod, String pgProvider,
+                         String receiptUrl, LocalDateTime paidAt) {
+        this.impUid = impUid;
+        this.payMethod = payMethod;
+        this.pgProvider = pgProvider;
+        this.receiptUrl = receiptUrl;
+        this.paidAt = paidAt;
+        this.status = PaymentStatus.PAID;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // 금액 위변조/환불 등으로 결제를 취소 처리한다.
+    public void markCancelled() {
+        this.status = PaymentStatus.CANCELLED;
+        this.cancelledAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 }

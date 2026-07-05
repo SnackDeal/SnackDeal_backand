@@ -5,16 +5,14 @@ import io.snackdeal.backand.domain.order.entity.OrderStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/** 주문 상세 응답. */
+/** 주문 상세 응답 (상품별 내역 + 배송지 + 결제 정보). */
 public record OrderResponse(
-        Long id,
+        Long orderId,
         String orderNumber,
-        Long productAmount,
-        Long shippingFee,
-        Long discountAmount,
-        Long finalAmount,
-        OrderStatus status,
         LocalDateTime orderedAt,
-        List<OrderItemResponse> items
+        OrderStatus status,
+        List<OrderItemResponse> items,
+        ShippingResponse shipping,
+        PaymentResponse payment
 ) {
 }

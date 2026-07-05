@@ -44,3 +44,4 @@ src/test/resources/*.properties
 .claude
 .docs
 /scripts/
+/AGENTS.md
