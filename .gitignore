@@ -43,5 +43,6 @@ src/test/resources/*.properties
 프로젝트 기능
 .claude
 .docs
+docs
 /scripts/
 /AGENTS.md
