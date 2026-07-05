@@ -51,3 +51,8 @@ custom:
   email-verification:
     code-expiration: 300000
     token-expiration: 1800000
+  portone:
+    api-url: https://api.portone.io
+    api-secret: dummy-secret
+    store-id: store-test
+    channel-key: channel-key-test

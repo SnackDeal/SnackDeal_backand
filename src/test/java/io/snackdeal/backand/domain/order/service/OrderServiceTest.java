@@ -120,7 +120,7 @@ class OrderServiceTest {
         // 정책 행 없음 → 기본값(무료기준 20,000 / 배송비 0). 상품 9,000 < 20,000 이지만 기본 배송비 0 → 9,000
         assertEquals(9000L, response.amount());
         assertEquals(EMAIL, response.buyerEmail());
-        assertTrue(response.merchantUid().startsWith("ORD-"));
+        assertTrue(response.paymentId().startsWith("ORD-"));
         verify(orderItemRepository).save(any(OrderItem.class));
         verify(shippingRepository).save(any());
         verify(paymentRepository).save(any(Payment.class));
@@ -178,17 +178,17 @@ class OrderServiceTest {
 
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
         when(ordersRepository.findByOrderNumber("ORD-1")).thenReturn(Optional.of(order));
-        when(portOneClient.getPayment("imp1")).thenReturn(new PortOnePayment(
-                "imp1", 12000L, "paid", "CARD", "tosspayments", "http://receipt", LocalDateTime.now()));
+        when(portOneClient.getPayment("ORD-1")).thenReturn(new PortOnePayment(
+                "ORD-1", 12000L, "PAID", "Card", "TOSSPAYMENTS", "http://receipt", LocalDateTime.now()));
         when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(item));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(paymentRepository.findByOrderId(100L)).thenReturn(Optional.of(payment));
 
-        OrderCompleteResponse response = orderService.complete(EMAIL, new OrderCompleteRequest("imp1", "ORD-1"));
+        OrderCompleteResponse response = orderService.complete(EMAIL, new OrderCompleteRequest("ORD-1"));
 
         assertEquals(OrderStatus.PAYMENT_COMPLETED, response.status());
         assertEquals(PaymentStatus.PAID, response.payment().status());
-        assertEquals("imp1", response.payment().impUid());
+        assertEquals("ORD-1", response.payment().paymentId());
         assertEquals(8, product.getStock()); // 10 - 2 차감
     }
 
@@ -199,13 +199,13 @@ class OrderServiceTest {
 
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
         when(ordersRepository.findByOrderNumber("ORD-1")).thenReturn(Optional.of(order));
-        when(portOneClient.getPayment("imp1")).thenReturn(new PortOnePayment(
-                "imp1", 5000L, "paid", "CARD", "tosspayments", "http://receipt", LocalDateTime.now()));
+        when(portOneClient.getPayment("ORD-1")).thenReturn(new PortOnePayment(
+                "ORD-1", 5000L, "PAID", "Card", "TOSSPAYMENTS", "http://receipt", LocalDateTime.now()));
 
         BusinessException e = assertThrows(BusinessException.class,
-                () -> orderService.complete(EMAIL, new OrderCompleteRequest("imp1", "ORD-1")));
+                () -> orderService.complete(EMAIL, new OrderCompleteRequest("ORD-1")));
         assertEquals(ResponseCode.PAYMENT_AMOUNT_MISMATCH, e.getResponseCode());
-        verify(portOneClient).cancelPayment(eq("imp1"), any());
+        verify(portOneClient).cancelPayment(eq("ORD-1"), any());
         verify(productRepository, never()).findById(any());
     }
 
@@ -216,13 +216,13 @@ class OrderServiceTest {
 
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
         when(ordersRepository.findByOrderNumber("ORD-1")).thenReturn(Optional.of(order));
-        when(portOneClient.getPayment("imp1")).thenReturn(new PortOnePayment(
-                "imp1", 12000L, "ready", null, null, null, null));
+        when(portOneClient.getPayment("ORD-1")).thenReturn(new PortOnePayment(
+                "ORD-1", 12000L, "READY", null, null, null, null));
 
         BusinessException e = assertThrows(BusinessException.class,
-                () -> orderService.complete(EMAIL, new OrderCompleteRequest("imp1", "ORD-1")));
+                () -> orderService.complete(EMAIL, new OrderCompleteRequest("ORD-1")));
         assertEquals(ResponseCode.PAYMENT_NOT_PAID, e.getResponseCode());
-        verify(portOneClient).cancelPayment(eq("imp1"), any());
+        verify(portOneClient).cancelPayment(eq("ORD-1"), any());
     }
 
     @Test

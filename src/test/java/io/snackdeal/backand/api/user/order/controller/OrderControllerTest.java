@@ -45,7 +45,8 @@ class OrderControllerTest {
         OrderPrepareRequest request = new OrderPrepareRequest(
                 List.of(new OrderItemRequest(1L, 2)), null,
                 new ShippingRequest("홍길동", "01012345678", "06133", "서울", null, null), null);
-        OrderPrepareResponse expected = new OrderPrepareResponse("ORD-1", 12000L, "u@test.com", "홍길동", "01011112222");
+        OrderPrepareResponse expected = new OrderPrepareResponse(
+                "ORD-1", 12000L, "store-1", "channel-key-1", "u@test.com", "홍길동", "01011112222");
         when(orderService.prepare(eq("u@test.com"), eq(request))).thenReturn(expected);
 
         CommonResponse<OrderPrepareResponse> response = orderController.prepare(details, request);
@@ -57,7 +58,7 @@ class OrderControllerTest {
     @Test
     @DisplayName("complete - 결제 검증 요청을 위임한다")
     void complete() {
-        OrderCompleteRequest request = new OrderCompleteRequest("imp1", "ORD-1");
+        OrderCompleteRequest request = new OrderCompleteRequest("ORD-1");
         when(orderService.complete(eq("u@test.com"), eq(request))).thenReturn(null);
 
         orderController.complete(details, request);

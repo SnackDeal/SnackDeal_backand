@@ -8,45 +8,42 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.OffsetDateTime;
 import java.util.Map;
 
 /**
- * 포트원(아임포트 V1) 실제 API 연동 구현체.
+ * 포트원 V2(api.portone.io) 실제 API 연동 구현체.
  *
- * 흐름: imp_key/imp_secret 로 access_token 발급 → 토큰으로 결제 조회/취소.
- * 인증정보는 코드에 하드코딩하지 않고 환경변수(custom.portone.*)로 주입받는다.
- * 키가 비어 있어도(로컬/테스트) 빈 생성은 되며, 실제 호출 시에만 포트원과 통신한다.
+ * 인증: 별도 토큰 발급 없이 `Authorization: PortOne {API_SECRET}` 헤더를 그대로 사용한다.
+ * API Secret 은 코드에 하드코딩하지 않고 환경변수(custom.portone.api-secret)로 주입받으며,
+ * 값이 비어 있어도(로컬/테스트) 빈 생성은 되고 실제 호출 시에만 포트원과 통신한다.
  */
 @Component
 public class PortOneClientImpl implements PortOneClient {
 
     private final RestClient restClient;
-    private final String impKey;
-    private final String impSecret;
+    private final String authorization;
 
     public PortOneClientImpl(
-            @Value("${custom.portone.api-url:https://api.iamport.kr}") String apiUrl,
-            @Value("${custom.portone.imp-key:}") String impKey,
-            @Value("${custom.portone.imp-secret:}") String impSecret) {
+            @Value("${custom.portone.api-url:https://api.portone.io}") String apiUrl,
+            @Value("${custom.portone.api-secret:}") String apiSecret) {
         this.restClient = RestClient.builder().baseUrl(apiUrl).build();
-        this.impKey = impKey;
-        this.impSecret = impSecret;
+        this.authorization = "PortOne " + apiSecret;
     }
 
     @Override
-    public PortOnePayment getPayment(String impUid) {
-        String token = issueAccessToken();
+    public PortOnePayment getPayment(String paymentId) {
         try {
             Map<String, Object> body = restClient.get()
-                    .uri("/payments/{impUid}", impUid)
-                    .header("Authorization", token)
+                    .uri("/payments/{paymentId}", paymentId)
+                    .header("Authorization", authorization)
                     .retrieve()
                     .body(Map.class);
-            Map<String, Object> response = extractResponse(body);
-            return toPayment(response);
+            if (body == null) {
+                throw new BusinessException(ResponseCode.PAYMENT_VERIFICATION_FAILED);
+            }
+            return toPayment(body);
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
@@ -55,14 +52,13 @@ public class PortOneClientImpl implements PortOneClient {
     }
 
     @Override
-    public void cancelPayment(String impUid, String reason) {
-        String token = issueAccessToken();
+    public void cancelPayment(String paymentId, String reason) {
         try {
             restClient.post()
-                    .uri("/payments/cancel")
-                    .header("Authorization", token)
+                    .uri("/payments/{paymentId}/cancel", paymentId)
+                    .header("Authorization", authorization)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of("imp_uid", impUid, "reason", reason == null ? "" : reason))
+                    .body(Map.of("reason", reason == null ? "" : reason))
                     .retrieve()
                     .toBodilessEntity();
         } catch (Exception e) {
@@ -71,47 +67,36 @@ public class PortOneClientImpl implements PortOneClient {
         }
     }
 
-    // imp_key/imp_secret 으로 access_token 을 발급받는다.
-    private String issueAccessToken() {
-        try {
-            Map<String, Object> body = restClient.post()
-                    .uri("/users/getToken")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of("imp_key", impKey, "imp_secret", impSecret))
-                    .retrieve()
-                    .body(Map.class);
-            Map<String, Object> response = extractResponse(body);
-            Object token = response.get("access_token");
-            if (token == null) {
-                throw new BusinessException(ResponseCode.PAYMENT_VERIFICATION_FAILED);
-            }
-            return token.toString();
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new BusinessException(ResponseCode.PAYMENT_VERIFICATION_FAILED);
-        }
-    }
-
-    // 포트원 응답 공통 포맷 { code, message, response: {...} } 에서 response 를 꺼낸다.
+    /*
+     * V2 결제 객체에서 검증에 필요한 값만 추출한다.
+     *  - amount.total: 결제 총액
+     *  - method.type: 결제수단(PaymentMethodCard → Card 로 접두어 제거)
+     *  - channel.pgProvider: PG사(TOSSPAYMENTS 등)
+     *  - paidAt: RFC3339 문자열
+     */
     @SuppressWarnings("unchecked")
-    private Map<String, Object> extractResponse(Map<String, Object> body) {
-        if (body == null || body.get("response") == null) {
-            throw new BusinessException(ResponseCode.PAYMENT_VERIFICATION_FAILED);
-        }
-        return (Map<String, Object>) body.get("response");
+    private PortOnePayment toPayment(Map<String, Object> body) {
+        Map<String, Object> amount = (Map<String, Object>) body.get("amount");
+        Map<String, Object> method = (Map<String, Object>) body.get("method");
+        Map<String, Object> channel = (Map<String, Object>) body.get("channel");
+
+        return new PortOnePayment(
+                asString(body.get("id")),
+                amount == null ? null : asLong(amount.get("total")),
+                asString(body.get("status")),
+                payMethodOf(method),
+                channel == null ? null : asString(channel.get("pgProvider")),
+                asString(body.get("receiptUrl")),
+                asDateTime(body.get("paidAt")));
     }
 
-    private PortOnePayment toPayment(Map<String, Object> response) {
-        return new PortOnePayment(
-                asString(response.get("imp_uid")),
-                asLong(response.get("amount")),
-                asString(response.get("status")),
-                asString(response.get("pay_method")),
-                asString(response.get("pg_provider")),
-                asString(response.get("receipt_url")),
-                asDateTime(response.get("paid_at"))
-        );
+    private String payMethodOf(Map<String, Object> method) {
+        if (method == null) {
+            return null;
+        }
+        String type = asString(method.get("type"));
+        // "PaymentMethodCard" → "Card" 처럼 접두어를 제거해 읽기 쉽게 만든다.
+        return (type != null && type.startsWith("PaymentMethod")) ? type.substring("PaymentMethod".length()) : type;
     }
 
     private String asString(Object value) {
@@ -122,15 +107,11 @@ public class PortOneClientImpl implements PortOneClient {
         return value == null ? null : ((Number) value).longValue();
     }
 
-    // 포트원의 paid_at 은 unix epoch(초). 0 이면 미결제 상태이므로 null.
+    // 포트원 V2 paidAt 은 RFC3339 문자열(예: 2026-07-01T14:32:00+09:00).
     private LocalDateTime asDateTime(Object value) {
-        if (value == null) {
+        if (value == null || value.toString().isBlank()) {
             return null;
         }
-        long epochSeconds = ((Number) value).longValue();
-        if (epochSeconds <= 0) {
-            return null;
-        }
-        return LocalDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault());
+        return OffsetDateTime.parse(value.toString()).toLocalDateTime();
     }
 }

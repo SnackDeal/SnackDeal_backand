@@ -9,6 +9,7 @@ import io.snackdeal.backand.api.admin.order.dto.AdminRefundResponse;
 import io.snackdeal.backand.domain.order.entity.OrderStatus;
 import io.snackdeal.backand.domain.order.service.AdminOrderService;
 import io.snackdeal.backand.global.config.dto.CommonResponse;
+import io.snackdeal.backand.global.swagger.AdminOrderApiDocs;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -22,6 +23,7 @@ import java.time.LocalTime;
  * 관리자 주문 관리 API. 주문 리스트/상세 조회, 상태 변경, 환불 처리를 담당한다.
  * "/admin/**" 는 SecurityConfig 에서 ROLE_ADMIN 으로 보호된다.
  */
+@AdminOrderApiDocs.Doc
 @RestController
 @RequestMapping("/admin/order")
 @RequiredArgsConstructor
@@ -29,7 +31,7 @@ public class AdminOrderController {
 
     private final AdminOrderService adminOrderService;
 
-    // 주문 리스트: keyword(주문번호/구매자) + status + 기간 + 페이징 (모두 선택값).
+    @AdminOrderApiDocs.AdminOrderList
     @GetMapping
     public CommonResponse<AdminOrderListResponse> list(
             @RequestParam(required = false) String keyword,
@@ -44,20 +46,20 @@ public class AdminOrderController {
         return CommonResponse.success(adminOrderService.findList(keyword, status, from, to, page, size));
     }
 
-    // 주문 상세 (관리 정보 포함).
+    @AdminOrderApiDocs.AdminOrderDetail
     @GetMapping("/{id}")
     public CommonResponse<AdminOrderDetailResponse> findById(@PathVariable Long id) {
         return CommonResponse.success(adminOrderService.findById(id));
     }
 
-    // 주문 상태 변경 (변경 시 manualOverride=true).
+    @AdminOrderApiDocs.AdminOrderChangeStatus
     @PatchMapping("/{id}/status")
     public CommonResponse<AdminOrderStatusResponse> changeStatus(@PathVariable Long id,
                                                                  @Valid @RequestBody AdminOrderStatusRequest request) {
         return CommonResponse.success(adminOrderService.changeStatus(id, request));
     }
 
-    // 환불 처리 (승인/거절).
+    @AdminOrderApiDocs.AdminOrderRefund
     @PostMapping("/{id}/refund")
     public CommonResponse<AdminRefundResponse> refund(@PathVariable Long id,
                                                       @Valid @RequestBody AdminRefundRequest request) {

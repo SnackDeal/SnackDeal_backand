@@ -85,6 +85,12 @@ public class OrderService {
     private final MemberRepository memberRepository;
     private final PortOneClient portOneClient;
 
+    // 프론트 결제창(requestPayment)에 필요한 공개값. prepare 응답으로 함께 내려준다.
+    @org.springframework.beans.factory.annotation.Value("${custom.portone.store-id:}")
+    private String portoneStoreId;
+    @org.springframework.beans.factory.annotation.Value("${custom.portone.channel-key:}")
+    private String portoneChannelKey;
+
     /*
      * 주문 준비. 주문을 PENDING 으로 임시 생성하고 결제 예정 금액을 확정한다.
      * 재고는 미리 체크(SELECT)만 하고 차감하지 않는다 → 결제창 진입 전 품절이면 즉시 차단.
@@ -151,7 +157,7 @@ public class OrderService {
                 .build());
 
         return new OrderPrepareResponse(
-                order.getOrderNumber(), finalAmount,
+                order.getOrderNumber(), finalAmount, portoneStoreId, portoneChannelKey,
                 member.getEmail(), member.getName(), member.getPhone());
     }
 
@@ -164,7 +170,8 @@ public class OrderService {
     @Transactional
     public OrderCompleteResponse complete(String email, OrderCompleteRequest request) {
         Member member = findMember(email);
-        Orders order = ordersRepository.findByOrderNumber(request.merchantUid())
+        // V2 는 paymentId 가 주문번호(merchant 지정값)와 동일하다.
+        Orders order = ordersRepository.findByOrderNumber(request.paymentId())
                 .orElseThrow(() -> new BusinessException(ResponseCode.ORDER_NOT_FOUND));
         if (!order.getMemberId().equals(member.getId())) {
             throw new BusinessException(ResponseCode.ORDER_ACCESS_DENIED);
@@ -174,13 +181,13 @@ public class OrderService {
         }
 
         // 포트원에서 실제 결제 내역 조회
-        PortOnePayment paid = portOneClient.getPayment(request.impUid());
+        PortOnePayment paid = portOneClient.getPayment(request.paymentId());
         if (!paid.isPaid()) {
-            portOneClient.cancelPayment(request.impUid(), "결제가 완료되지 않았습니다");
+            portOneClient.cancelPayment(request.paymentId(), "결제가 완료되지 않았습니다");
             throw new BusinessException(ResponseCode.PAYMENT_NOT_PAID);
         }
         if (!order.getFinalAmount().equals(paid.amount())) {
-            portOneClient.cancelPayment(request.impUid(), "결제 금액 불일치(위변조 의심)");
+            portOneClient.cancelPayment(request.paymentId(), "결제 금액 불일치(위변조 의심)");
             throw new BusinessException(ResponseCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
@@ -204,7 +211,7 @@ public class OrderService {
         Payment payment = paymentRepository.findByOrderId(order.getId())
                 .orElseThrow(() -> new BusinessException(ResponseCode.ORDER_NOT_FOUND));
         order.markPaymentCompleted();
-        payment.markPaid(paid.impUid(), paid.payMethod(), paid.pgProvider(), paid.receiptUrl(), paid.paidAt());
+        payment.markPaid(paid.paymentId(), paid.payMethod(), paid.pgProvider(), paid.receiptUrl(), paid.paidAt());
 
         return new OrderCompleteResponse(
                 order.getId(), order.getOrderNumber(), order.getStatus(),
