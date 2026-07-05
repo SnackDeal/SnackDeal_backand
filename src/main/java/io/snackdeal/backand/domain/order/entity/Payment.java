@@ -38,12 +38,33 @@ public class Payment {
     private Long orderId;
 
     @Builder
-    public Payment(Long amount, String pgProvider, Long orderId) {
+    public Payment(Long amount, String pgProvider, Long orderId, String merchantUid) {
         this.amount = amount;
         this.pgProvider = pgProvider;
         this.orderId = orderId;
+        this.merchantUid = merchantUid;
         this.status = PaymentStatus.READY;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // 결제 검증 성공 시 포트원에서 조회한 결제 정보로 PAID 확정한다.
+    // impUid 컬럼에는 포트원 V2 의 paymentId(결제 고유번호)를 저장한다(추적·환불 로그용).
+    public void markPaid(String paymentId, String payMethod, String pgProvider,
+                         String receiptUrl, LocalDateTime paidAt) {
+        this.impUid = paymentId;
+        this.payMethod = payMethod;
+        this.pgProvider = pgProvider;
+        this.receiptUrl = receiptUrl;
+        this.paidAt = paidAt;
+        this.status = PaymentStatus.PAID;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // 금액 위변조/환불 등으로 결제를 취소 처리한다.
+    public void markCancelled() {
+        this.status = PaymentStatus.CANCELLED;
+        this.cancelledAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 }
