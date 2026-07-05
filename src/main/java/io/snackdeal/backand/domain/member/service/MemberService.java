@@ -12,6 +12,7 @@ import io.snackdeal.backand.domain.member.entity.MemberRole;
 import io.snackdeal.backand.domain.member.entity.MemberStatus;
 import io.snackdeal.backand.domain.member.mapper.MemberMapper;
 import io.snackdeal.backand.domain.member.repository.MemberRepository;
+import io.snackdeal.backand.global.util.PhoneUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -49,7 +50,7 @@ public class MemberService implements UserDetailsService {
                 .name(request.name())
                 .birth(request.birth())
                 .gender(request.gender())
-                .phone(request.phone())
+                .phone(PhoneUtils.format(request.phone()))
                 .role(MemberRole.USER)
                 .build();
 
@@ -100,7 +101,7 @@ public class MemberService implements UserDetailsService {
         }
 
         // phone/password 중 null 인 항목은 엔티티 쪽에서 건너뛴다 (부분 수정)
-        member.updateProfile(request.phone(), encodedPassword);
+        member.updateProfile(PhoneUtils.format(request.phone()), encodedPassword);
         return MemberMapper.toDescription(member);
     }
 

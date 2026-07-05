@@ -29,8 +29,8 @@ public record JoinRequest(
         @Schema(description = "성별", example = "MALE", requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull Gender gender,
 
-        @Schema(description = "휴대폰번호(하이픈 없이)", example = "01011112222", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank String phone,
+        @Schema(description = "휴대폰번호(하이픈 포함/미포함 모두 허용)", example = "010-1111-2222", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank @Pattern(regexp = "^0\\d{1,2}-?\\d{3,4}-?\\d{4}$", message = "올바른 휴대폰번호 형식이 아닙니다.") String phone,
 
         // 이메일 인증(verify-code) 성공 시 발급된 토큰
         @Schema(description = "이메일 인증 토큰(verify-code 응답값)", example = "evt_a1b2c3d4", requiredMode = Schema.RequiredMode.REQUIRED)
