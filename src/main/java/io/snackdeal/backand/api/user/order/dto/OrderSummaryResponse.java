@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 
-/** 주문 목록 항목 응답. mainProductName = 대표 상품명, itemCount = 주문 상품 종류 수. */
+/** 주문 목록 항목 응답 mainProductName = 대표 상품명, itemCount = 주문 상품 종류 수 */
 @Schema(description = "주문 목록 항목")
 public record OrderSummaryResponse(
         @Schema(description = "주문 ID", example = "123") Long orderId,

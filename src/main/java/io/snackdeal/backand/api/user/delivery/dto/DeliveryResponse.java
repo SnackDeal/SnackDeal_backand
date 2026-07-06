@@ -3,7 +3,7 @@ package io.snackdeal.backand.api.user.delivery.dto;
 import io.snackdeal.backand.domain.delivery.entity.Delivery;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/** 배송지 응답. */
+/** 배송지 응답 */
 @Schema(description = "배송지 응답")
 public record DeliveryResponse(
         @Schema(description = "배송지 id", example = "5")

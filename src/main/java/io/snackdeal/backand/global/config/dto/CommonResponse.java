@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 모든 API 응답을 감싸는 공통 래퍼. data 안에 각 API 의 실제 payload 가 들어간다.
+ * 모든 API 응답을 감싸는 공통 래퍼 data 안에 각 API 의 실제 payload 가 들어간다.
  */
 @Schema(description = "공통 응답 래퍼")
 @Getter

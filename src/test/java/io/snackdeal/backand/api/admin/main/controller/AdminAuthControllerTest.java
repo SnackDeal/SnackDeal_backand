@@ -17,7 +17,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * 관리자 로그인 컨트롤러 단위테스트: AuthService.adminLogin 위임만 검증한다.
+ * 관리자 로그인 컨트롤러 단위테스트: AuthService.adminLogin 위임만 검증
  */
 @ExtendWith(MockitoExtension.class)
 class AdminAuthControllerTest {
@@ -29,7 +29,7 @@ class AdminAuthControllerTest {
     private AuthService authService;
 
     @Test
-    @DisplayName("login - adminLogin 결과(토큰)를 그대로 감싸 반환한다")
+    @DisplayName("login - adminLogin 결과(토큰)를 그대로 감싸 반환")
     void login() {
         LoginRequest request = new LoginRequest("admin@test.com", "p@ssW0rd!");
         TokenResponse expected = new TokenResponse("access-token", "refresh-token");

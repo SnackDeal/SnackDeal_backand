@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * 컨트롤러 단위테스트: Spring 컨텍스트 없이 서비스 위임/응답 래핑만 검증한다.
+ * 컨트롤러 단위테스트: Spring 컨텍스트 없이 서비스 위임/응답 래핑만 검증
  */
 @ExtendWith(MockitoExtension.class)
 class MemberControllerTest {
@@ -46,7 +46,7 @@ class MemberControllerTest {
     }
 
     @Test
-    @DisplayName("sendCode - EmailVerificationService 결과를 그대로 감싸 반환한다")
+    @DisplayName("sendCode - EmailVerificationService 결과를 그대로 감싸 반환")
     void sendCode() {
         SendCodeResponse expected = new SendCodeResponse(300);
         when(emailVerificationService.sendCode("new@test.com")).thenReturn(expected);
@@ -59,7 +59,7 @@ class MemberControllerTest {
     }
 
     @Test
-    @DisplayName("verifyCode - 인증 토큰 응답을 그대로 반환한다")
+    @DisplayName("verifyCode - 인증 토큰 응답을 그대로 반환")
     void verifyCode() {
         VerifyCodeResponse expected = new VerifyCodeResponse("token-123", 600);
         when(emailVerificationService.verifyCode("a@test.com", "482913")).thenReturn(expected);
@@ -71,7 +71,7 @@ class MemberControllerTest {
     }
 
     @Test
-    @DisplayName("me - 인증된 사용자 이메일로 내 정보를 조회한다")
+    @DisplayName("me - 인증된 사용자 이메일로 내 정보를 조회")
     void me() {
         MemberDescription expected = mockDescription();
         when(memberService.findDescriptionByEmail("user@test.com")).thenReturn(expected);
@@ -83,7 +83,7 @@ class MemberControllerTest {
     }
 
     @Test
-    @DisplayName("updateMe - 인증된 사용자 이메일과 요청으로 프로필을 수정한다")
+    @DisplayName("updateMe - 인증된 사용자 이메일과 요청으로 프로필을 수정")
     void updateMe() {
         MemberUpdateRequest request = new MemberUpdateRequest("01099998888", "old", "newP@ss1!");
         MemberDescription expected = mockDescription();
@@ -96,7 +96,7 @@ class MemberControllerTest {
     }
 
     @Test
-    @DisplayName("logout - 인증된 사용자 이메일로 로그아웃을 위임한다")
+    @DisplayName("logout - 인증된 사용자 이메일로 로그아웃을 위임")
     void logout() {
         CommonResponse<Void> response = memberController.logout(details());
 

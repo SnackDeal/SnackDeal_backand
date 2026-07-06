@@ -2,7 +2,7 @@ package io.snackdeal.backand.api.user.order.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/** 주문 항목 응답. lineTotal = price * quantity. */
+/** 주문 항목 응답 lineTotal = price * quantity */
 @Schema(description = "주문 항목 응답")
 public record OrderItemResponse(
         @Schema(description = "상품 ID", example = "1") Long productId,

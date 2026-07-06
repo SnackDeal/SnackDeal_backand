@@ -16,7 +16,7 @@ public record PortOnePayment(
         String receiptUrl,
         LocalDateTime paidAt
 ) {
-    // 실제 결제가 완료(PAID)되었는지 여부. (대소문자 무시)
+    // 실제 결제가 완료(PAID)되었는지 여부 (대소문자 무시)
     public boolean isPaid() {
         return "PAID".equalsIgnoreCase(status);
     }

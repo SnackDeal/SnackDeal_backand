@@ -40,8 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * 주문/결제 + 관리자 주문관리 + 배송비 정책 API 를 HTTP 스택 전 구간(컨트롤러→서비스→리포지토리→H2)으로 검증한다.
- * 포트원 연동만 Mock 으로 대체하고, 인증은 Spring Security 테스트의 principal 주입으로 처리한다.
+ * 주문/결제 + 관리자 주문관리 + 배송비 정책 API 를 HTTP 스택 전 구간(컨트롤러→서비스→리포지토리→H2)으로 검증
+ * 포트원 연동만 Mock 으로 대체하고, 인증은 Spring Security 테스트의 principal 주입으로 처리
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -263,7 +263,7 @@ class OrderApiIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-    // 결제까지 완료된 주문을 만들고 paymentId 를 반환한다.
+    // 결제까지 완료된 주문을 만들고 paymentId 를 반환
     private String placePaidOrder(Member user, Product product, long amount) throws Exception {
         String prepareBody = objectMapper.writeValueAsString(Map.of(
                 "items", List.of(Map.of("productId", product.getId(), "quantity", 2)),
@@ -283,7 +283,7 @@ class OrderApiIntegrationTest {
         return paymentId;
     }
 
-    // 사용자의 첫 주문 id 를 목록 API 로 조회한다.
+    // 사용자의 첫 주문 id 를 목록 API 로 조회
     private long orderIdOf(Member user) throws Exception {
         String listResult = mockMvc.perform(get("/order/list").with(as(user)))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);

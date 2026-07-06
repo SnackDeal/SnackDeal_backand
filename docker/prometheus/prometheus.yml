@@ -6,5 +6,5 @@ scrape_configs:
     metrics_path: /actuator/prometheus
     static_configs:
       # 앱이 Docker 밖(로컬 gradle bootRun/IDE)에서 8080 포트로 떠 있다는 전제.
-      # 앱까지 컨테이너로 띄운다면 host.docker.internal 대신 서비스명으로 바꿔야 한다.
+      # 앱까지 컨테이너로 띄운다면 host.docker.internal 대신 서비스명으로 바꿔야
       - targets: ["host.docker.internal:8080"]

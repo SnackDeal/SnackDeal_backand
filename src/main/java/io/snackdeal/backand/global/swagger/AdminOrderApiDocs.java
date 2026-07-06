@@ -30,7 +30,7 @@ public interface AdminOrderApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "주문 리스트 조회",
-            description = "전체 주문을 최신순으로 페이징 조회한다.\n\n"
+            description = "전체 주문을 최신순으로 페이징 조회\n\n"
                     + "쿼리 파라미터(모두 선택):\n"
                     + "- `keyword`: 주문번호 또는 구매자 이메일/이름 부분 검색\n"
                     + "- `status`: 주문 상태 필터 (PENDING_PAYMENT / PAYMENT_COMPLETED / PREPARING_SHIPMENT / SHIPPED / COMPLETED / CANCELLED / REFUND_REQUESTED / REFUND_COMPLETED)\n"
@@ -47,7 +47,7 @@ public interface AdminOrderApiDocs {
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "주문 상세 조회 (관리자)",
             description = "사용자용 상세에 더해 구매자 정보(`buyer.totalOrderCount`) · 사용 쿠폰 상세(`payment.usedCoupon`) · "
-                    + "`manualOverride` · `scheduledNextStatus`(스케줄러 미도입으로 항상 null) 등 관리 정보를 포함한다.")
+                    + "`manualOverride` · `scheduledNextStatus`(스케줄러 미도입으로 항상 null) 등 관리 정보를 포함")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "403", description = "관리자 권한 없음"),
@@ -76,7 +76,7 @@ public interface AdminOrderApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "환불 처리 (승인/거절)",
-            description = "`REFUND_REQUESTED` 상태의 주문에 대해 승인 또는 거절을 처리한다.\n\n"
+            description = "`REFUND_REQUESTED` 상태의 주문에 대해 승인 또는 거절을 처리\n\n"
                     + "**승인** (`approve: true`): 주문 REFUND_COMPLETED · 결제 CANCELLED · 재고 복구(`restoreStock` 기본 true) · "
                     + "쿠폰 복구(유효기간 남은 경우만)\n\n"
                     + "**거절** (`approve: false`): 환불 요청 직전 상태로 복귀 · `rejectReason` 필수\n\n"
@@ -94,8 +94,8 @@ public interface AdminOrderApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "배송비 정책 조회",
-            description = "현재 배송비 정책(무료기준 금액 · 기본 배송비)을 조회한다.\n\n"
-                    + "정책 행이 없으면 기본값(무료기준 20,000원 / 배송비 0원)으로 자동 생성 후 반환한다.")
+            description = "현재 배송비 정책(무료기준 금액 · 기본 배송비)을 조회\n\n"
+                    + "정책 행이 없으면 기본값(무료기준 20,000원 / 배송비 0원)으로 자동 생성 후 반환")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
@@ -106,8 +106,8 @@ public interface AdminOrderApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "배송비 정책 변경",
-            description = "`baseFee`(기본 배송비) · `freeThreshold`(무료기준 금액)를 부분 수정한다.\n\n"
-                    + "null인 항목은 기존 값을 유지한다. 변경 즉시 신규 주문 prepare에 반영된다.\n\n"
+            description = "`baseFee`(기본 배송비) · `freeThreshold`(무료기준 금액)를 부분 수정\n\n"
+                    + "null인 항목은 기존 값을 유지 변경 즉시 신규 주문 prepare에 반영됨\n\n"
                     + "배송비 계산: 상품총액 >= freeThreshold → 0원, 미만 → baseFee")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "변경 성공"),

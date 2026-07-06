@@ -6,7 +6,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 /**
- * 공용 메일 발송 서비스. 어느 도메인에서든 주입해 사용한다.
+ * 공용 메일 발송 서비스 어느 도메인에서든 주입해 사용
  */
 @Service
 @RequiredArgsConstructor

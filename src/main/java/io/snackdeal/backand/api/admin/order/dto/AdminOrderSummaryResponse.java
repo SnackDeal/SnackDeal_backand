@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 
-/** 관리자 주문 리스트 항목. 구매자 정보(email/name)를 함께 노출한다. */
+/** 관리자 주문 리스트 항목 구매자 정보(email/name)를 함께 노출 */
 @Schema(description = "관리자 주문 목록 항목")
 public record AdminOrderSummaryResponse(
         @Schema(description = "주문 ID", example = "123") Long orderId,

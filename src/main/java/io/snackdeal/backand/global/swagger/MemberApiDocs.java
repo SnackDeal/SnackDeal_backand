@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 /**
  * 회원 API(Swagger) 문서용 합성 어노테이션 모음.
  * 컨트롤러에는 상세 설명을 직접 쓰지 않고 여기 정의한 어노테이션(@MemberApiDocs.XXX)만 붙여서 가져다 쓴다.
- * springdoc 은 Spring 의 메타 어노테이션 병합(AnnotatedElementUtils)을 통해 아래 @Operation/@ApiResponses 를 인식한다.
+ * springdoc 은 Spring 의 메타 어노테이션 병합(AnnotatedElementUtils)을 통해 아래 @Operation/@ApiResponses 를 인식
  */
 public interface MemberApiDocs {
 
@@ -30,7 +30,7 @@ public interface MemberApiDocs {
     @Retention(RetentionPolicy.RUNTIME)
     @SecurityRequirements
     @Operation(summary = "이메일 인증코드 발송",
-            description = "가입할 이메일로 6자리 인증코드를 발송한다. 유효시간 5분, 60초 후 재발송 가능.")
+            description = "가입할 이메일로 6자리 인증코드를 발송 유효시간 5분, 60초 후 재발송 가능.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "발송 성공 (data.expiresIn = 유효시간 초)"),
             @ApiResponse(responseCode = "400", description = "이메일 형식 오류"),
@@ -45,7 +45,7 @@ public interface MemberApiDocs {
     @Retention(RetentionPolicy.RUNTIME)
     @SecurityRequirements
     @Operation(summary = "이메일 인증코드 검증",
-            description = "발송된 인증코드를 검증하고, 회원가입에 사용할 인증 토큰(verificationToken)을 발급한다. 토큰 유효시간 10분.")
+            description = "발송된 인증코드를 검증하고, 회원가입에 사용할 인증 토큰(verificationToken)을 발급 토큰 유효시간 10분.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "검증 성공 (data.verificationToken, data.expiresIn)"),
             @ApiResponse(responseCode = "400", description = "인증코드 불일치 또는 만료")
@@ -58,9 +58,9 @@ public interface MemberApiDocs {
     @Retention(RetentionPolicy.RUNTIME)
     @SecurityRequirements
     @Operation(summary = "회원가입",
-            description = "이메일 인증 토큰(verificationToken)으로 인증을 확인한 뒤 회원을 생성한다.\n\n"
+            description = "이메일 인증 토큰(verificationToken)으로 인증을 확인한 뒤 회원을 생성\n\n"
                     + "isSocialLogin=true 인 소셜 회원가입은 이메일 인증 토큰 검증을 생략하고, "
-                    + "가입과 동시에 access/refresh 토큰을 발급하여 별도 로그인 없이 세션을 시작한다.")
+                    + "가입과 동시에 access/refresh 토큰을 발급하여 별도 로그인 없이 세션을 시작")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "가입 성공 (data.member = 생성된 회원 정보, 소셜 가입 시 data.accessToken/refreshToken 함께 발급)"),
             @ApiResponse(responseCode = "400", description = "유효성 실패 또는 인증 토큰 무효"),
@@ -74,7 +74,7 @@ public interface MemberApiDocs {
     @Retention(RetentionPolicy.RUNTIME)
     @SecurityRequirements
     @Operation(summary = "로그인",
-            description = "이메일/비밀번호로 로그인하고 access/refresh 토큰을 발급한다. 탈퇴(DELETED) 계정은 로그인할 수 없다.\n\n"
+            description = "이메일/비밀번호로 로그인하고 access/refresh 토큰을 발급 탈퇴(DELETED) 계정은 로그인할 수 없음\n\n"
                     + "**샘플 계정**\n"
                     + "- 사용자: `user@snackdeal.io` / `user1234`\n"
                     + "- 관리자: `admin@snackdeal.io` / `admin1234`")
@@ -90,7 +90,7 @@ public interface MemberApiDocs {
     @Retention(RetentionPolicy.RUNTIME)
     @SecurityRequirements
     @Operation(summary = "토큰 재발급",
-            description = "RefreshToken 을 검증해 새 access/refresh 토큰을 발급한다(토큰 로테이션).")
+            description = "RefreshToken 을 검증해 새 access/refresh 토큰을 발급(토큰 로테이션).")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "재발급 성공"),
             @ApiResponse(responseCode = "401", description = "유효하지 않음 / 만료 / 저장된 토큰과 불일치")
@@ -102,7 +102,7 @@ public interface MemberApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "로그아웃",
-            description = "저장된 RefreshToken(세션)을 삭제한다. (Bearer 인증 필요)")
+            description = "저장된 RefreshToken(세션)을 삭제 (Bearer 인증 필요)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 접근")
@@ -114,7 +114,7 @@ public interface MemberApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "내 정보 조회",
-            description = "로그인한 사용자 본인의 정보를 조회한다. (Bearer 인증 필요)")
+            description = "로그인한 사용자 본인의 정보를 조회 (Bearer 인증 필요)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 접근")
@@ -126,7 +126,7 @@ public interface MemberApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "내 정보 수정",
-            description = "휴대폰/비밀번호를 부분 수정한다. 비밀번호 변경 시 현재 비밀번호(currentPassword)가 일치해야 한다. (Bearer 인증 필요)")
+            description = "휴대폰/비밀번호를 부분 수정 비밀번호 변경 시 현재 비밀번호(currentPassword)가 일치해야  (Bearer 인증 필요)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "수정 성공"),
             @ApiResponse(responseCode = "400", description = "유효성 실패"),

@@ -104,7 +104,7 @@ class AdminOrderServiceTest {
     }
 
     @Test
-    @DisplayName("findList - 검색 결과를 구매자 정보와 함께 매핑한다")
+    @DisplayName("findList - 검색 결과를 구매자 정보와 함께 매핑")
     void findList_success() {
         Orders order = order(100L, 1L, OrderStatus.PREPARING_SHIPMENT, null);
         Page<Orders> page = new PageImpl<>(List.of(order));
@@ -155,7 +155,7 @@ class AdminOrderServiceTest {
     }
 
     @Test
-    @DisplayName("changeStatus - 취소 시 재고와 쿠폰을 복구한다")
+    @DisplayName("changeStatus - 취소 시 재고와 쿠폰을 복구")
     void changeStatus_cancelRestoresStockAndCoupon() {
         Orders order = order(100L, 1L, OrderStatus.PAYMENT_COMPLETED, 78L);
         Product product = product(1L, 5);
@@ -205,7 +205,7 @@ class AdminOrderServiceTest {
     }
 
     @Test
-    @DisplayName("refund - 승인해도 유효기간이 지난 쿠폰은 복구하지 않는다")
+    @DisplayName("refund - 승인해도 유효기간이 지난 쿠폰은 복구하지 않음")
     void refund_approve_expiredCouponNotRestored() {
         Orders order = order(100L, 1L, OrderStatus.REFUND_REQUESTED, 78L);
         Payment payment = Payment.builder().amount(12000L).pgProvider("tosspayments").orderId(100L)

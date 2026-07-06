@@ -78,7 +78,7 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("login - 이메일/비밀번호가 맞으면 access/refresh 토큰을 발급한다")
+    @DisplayName("login - 이메일/비밀번호가 맞으면 access/refresh 토큰을 발급")
     void login_Success() {
         MemberDetails details = new MemberDetails(1L, EMAIL, "ENCODED", MemberRole.USER);
         when(memberService.loadUserByUsername(EMAIL)).thenReturn(details);
@@ -121,7 +121,7 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("adminLogin - 관리자(ADMIN) 계정이면 토큰을 발급한다")
+    @DisplayName("adminLogin - 관리자(ADMIN) 계정이면 토큰을 발급")
     void adminLogin_Success() {
         MemberDetails details = new MemberDetails(1L, EMAIL, "ENCODED", MemberRole.ADMIN);
         when(memberService.loadUserByUsername(EMAIL)).thenReturn(details);
@@ -150,7 +150,7 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("refresh - 저장된 RefreshToken과 일치하면 토큰을 재발급한다")
+    @DisplayName("refresh - 저장된 RefreshToken과 일치하면 토큰을 재발급")
     void refresh_Success() {
         String refreshToken = "stored-refresh-token";
         when(jwtTokenProvider.validate(refreshToken)).thenReturn(true);
@@ -190,7 +190,7 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("logout - RefreshToken(세션)을 삭제한다")
+    @DisplayName("logout - RefreshToken(세션)을 삭제")
     void logout_Success() {
         authService.logout(EMAIL);
 
@@ -198,7 +198,7 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("issueTokens - access/refresh 토큰을 만들고 RefreshToken을 저장한다")
+    @DisplayName("issueTokens - access/refresh 토큰을 만들고 RefreshToken을 저장")
     void issueTokens_Success() {
         stubTokenIssue();
 

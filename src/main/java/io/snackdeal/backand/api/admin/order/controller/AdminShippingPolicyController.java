@@ -10,8 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 배송비 정책 관리 API(관리자). 무료기준/기본 배송비를 조회·변경한다.
- * "/admin/**" 는 SecurityConfig 에서 ROLE_ADMIN 으로 보호된다.
+ * 배송비 정책 관리 API(관리자) 무료기준/기본 배송비를 조회·변경
+ * "/admin/**" 는 SecurityConfig 에서 ROLE_ADMIN 으로 보호됨
  */
 @AdminOrderApiDocs.PolicyDoc
 @RestController

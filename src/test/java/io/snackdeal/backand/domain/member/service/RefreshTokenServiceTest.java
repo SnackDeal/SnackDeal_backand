@@ -33,7 +33,7 @@ class RefreshTokenServiceTest {
     private static final long REFRESH_EXPIRATION = 604_800_000L;
 
     @Test
-    @DisplayName("save - RefreshToken과 세션ID를 만료시간과 함께 저장한다")
+    @DisplayName("save - RefreshToken과 세션ID를 만료시간과 함께 저장")
     void save_Success() {
         ReflectionTestUtils.setField(refreshTokenService, "refreshExpiration", REFRESH_EXPIRATION);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
@@ -46,7 +46,7 @@ class RefreshTokenServiceTest {
     }
 
     @Test
-    @DisplayName("find - 저장된 RefreshToken을 Optional로 반환한다")
+    @DisplayName("find - 저장된 RefreshToken을 Optional로 반환")
     void find_Success() {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("refresh:" + EMAIL)).thenReturn("refresh-token");
@@ -58,7 +58,7 @@ class RefreshTokenServiceTest {
     }
 
     @Test
-    @DisplayName("getActiveSessionId - 저장된 세션ID를 Optional로 반환한다")
+    @DisplayName("getActiveSessionId - 저장된 세션ID를 Optional로 반환")
     void getActiveSessionId_Success() {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("session:" + EMAIL)).thenReturn("session-1");
@@ -70,7 +70,7 @@ class RefreshTokenServiceTest {
     }
 
     @Test
-    @DisplayName("delete - RefreshToken과 세션 키를 모두 삭제한다")
+    @DisplayName("delete - RefreshToken과 세션 키를 모두 삭제")
     void delete_Success() {
         refreshTokenService.delete(EMAIL);
 

@@ -138,7 +138,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("changeStatus - INACTIVE 변경은 토큰을 무효화하지 않는다")
+    @DisplayName("changeStatus - INACTIVE 변경은 토큰을 무효화하지 않음")
     void changeStatus_InactiveKeepsToken() {
         Member m = member(2L, MemberStatus.ACTIVE);
         when(repository.findById(2L)).thenReturn(Optional.of(m));
@@ -168,7 +168,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("join - 인증토큰이 유효하고 미가입 이메일이면 회원을 생성한다")
+    @DisplayName("join - 인증토큰이 유효하고 미가입 이메일이면 회원을 생성")
     void join_Success() {
         String email = "hong@test.com";
         when(emailVerificationService.getVerifiedEmail("vtoken")).thenReturn(email);

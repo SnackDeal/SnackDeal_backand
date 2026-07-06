@@ -96,10 +96,10 @@ public class MemberService implements UserDetailsService {
 
     /*
      * 내 정보 수정 (휴대폰 / 비밀번호).
-     * 비밀번호는 민감 정보이므로, "새 비밀번호"를 바꾸려면 반드시 "현재 비밀번호"를 함께 받아 본인 확인을 한다.
+     * 비밀번호는 민감 정보이므로, "새 비밀번호"를 바꾸려면 반드시 "현재 비밀번호"를 함께 받아 본인 확인을 
      *  - 비밀번호를 바꾸지 않는 경우(request.password()==null): 현재 비밀번호 검증 없이 휴대폰만 수정
      *  - 비밀번호를 바꾸는 경우: 현재 비밀번호가 없거나 틀리면 401(INVALID_PASSWORD)
-     * @Transactional 영속 상태의 member 를 수정하므로, 별도 save 없이 변경 감지(dirty checking)로 반영된다.
+     * @Transactional 영속 상태의 member 를 수정하므로, 별도 save 없이 변경 감지(dirty checking)로 반영됨
      */
     @Transactional
     public MemberDescription updateProfile(String email, MemberUpdateRequest request) {
@@ -112,7 +112,7 @@ public class MemberService implements UserDetailsService {
                     || !passwordEncoder.matches(request.currentPassword(), member.getPassword())) {
                 throw new BusinessException(ResponseCode.INVALID_PASSWORD);
             }
-            // DB 에는 평문이 아닌 암호화된 값만 저장한다
+            // DB 에는 평문이 아닌 암호화된 값만 저장
             encodedPassword = passwordEncoder.encode(request.password());
         }
 
@@ -123,7 +123,7 @@ public class MemberService implements UserDetailsService {
 
     /*
      * 관리자 회원 리스트 조회 (검색 + 필터 + 페이징).
-     * keyword: 이메일/이름 부분검색, status: 상태 필터. 둘 다 선택값이라 null 이면 해당 조건은 무시된다.
+     * keyword: 이메일/이름 부분검색, status: 상태 필터 둘 다 선택값이라 null 이면 해당 조건은 무시됨
      * 빈 문자열("")도 "조건 없음"으로 보기 위해 null 로 정규화한 뒤 리포지토리에 넘긴다.
      */
     public Page<MemberDescription> search(String keyword, MemberStatus status, Pageable pageable) {
@@ -139,11 +139,11 @@ public class MemberService implements UserDetailsService {
 
     /*
      * 관리자의 회원 상태 변경 (ACTIVE / INACTIVE / DELETED).
-     * 하드 삭제하지 않고 상태값 + deleted_at 으로 관리하여 주문/문의 이력을 보존한다.
+     * 하드 삭제하지 않고 상태값 + deleted_at 으로 관리하여 주문/문의 이력을 보존
      * 방어 규칙:
      *  1) 본인 계정은 변경 불가 → 403 (관리자가 실수로 자기 계정을 잠그는 것을 방지)
      *  2) 이미 탈퇴(DELETED)한 회원은 되돌릴 수 없음(터미널 상태) → 422
-     *  3) DELETED 로 바꾸면 RefreshToken 을 즉시 삭제해 로그인 세션을 무효화한다
+     *  3) DELETED 로 바꾸면 RefreshToken 을 즉시 삭제해 로그인 세션을 무효화
      *     (로그인 API 에서도 DELETED 계정은 차단 → AuthService.login 참고)
      * @param adminId 요청한 관리자 본인 id (본인 계정 변경 차단 비교용)
      */

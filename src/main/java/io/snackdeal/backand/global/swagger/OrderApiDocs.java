@@ -24,8 +24,8 @@ public interface OrderApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "주문 준비",
-            description = "재고를 확인(차감 없음)하고 주문을 PENDING_PAYMENT 로 임시 생성한다.\n\n"
-                    + "응답의 `paymentId`(=주문번호)와 `amount`를 포트원 V2 결제창(`requestPayment`)에 그대로 전달한다.\n"
+            description = "재고를 확인(차감 없음)하고 주문을 PENDING_PAYMENT 로 임시 생성\n\n"
+                    + "응답의 `paymentId`(=주문번호)와 `amount`를 포트원 V2 결제창(`requestPayment`)에 그대로 전달\n"
                     + "`storeId`/`channelKey`도 함께 내려주므로 프론트에서 하드코딩 불필요.\n\n"
                     + "배송지는 `deliveryId`(주소록) 또는 `shipping` 직접 입력 중 하나 필수.\n"
                     + "쿠폰 사용 시 `userCouponId` 전달 — 본인/ACTIVE/유효기간/최소주문금액 검증.")
@@ -42,11 +42,11 @@ public interface OrderApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "결제 검증 및 주문 확정",
-            description = "포트원 V2에서 실제 결제금액을 조회해 DB 예정금액과 대조한다.\n\n"
+            description = "포트원 V2에서 실제 결제금액을 조회해 DB 예정금액과 대조\n\n"
                     + "- 일치 + PAID: 재고 차감 · 쿠폰 USED · 주문 PAYMENT_COMPLETED · 결제 PAID (트랜잭션 원자처리)\n"
                     + "- 금액 불일치: 포트원 결제 자동 취소 후 422(OR006)\n"
                     + "- 미결제(READY 등): 포트원 결제 자동 취소 후 422(OR007)\n\n"
-                    + "`paymentId`는 prepare 응답의 값(=주문번호)을 그대로 전달한다.")
+                    + "`paymentId`는 prepare 응답의 값(=주문번호)을 그대로 전달")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "확정 성공 (주문/결제 상세)"),
             @ApiResponse(responseCode = "403", description = "타인의 주문(OR009)"),
@@ -60,8 +60,8 @@ public interface OrderApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "내 주문내역",
-            description = "로그인한 사용자의 주문 목록을 최신순으로 페이징 조회한다.\n\n"
-                    + "각 항목에 대표 상품명(`mainProductName`)과 상품 종류 수(`itemCount`)를 포함한다.")
+            description = "로그인한 사용자의 주문 목록을 최신순으로 페이징 조회\n\n"
+                    + "각 항목에 대표 상품명(`mainProductName`)과 상품 종류 수(`itemCount`)를 포함")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 접근")
@@ -72,7 +72,7 @@ public interface OrderApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "주문 상세",
-            description = "주문 상품 내역 · 배송지 · 결제 정보를 반환한다.\n\n본인 주문만 조회 가능하며, 타인 접근 시 403.")
+            description = "주문 상품 내역 · 배송지 · 결제 정보를 반환\n\n본인 주문만 조회 가능하며, 타인 접근 시 403.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "403", description = "타인의 주문(OR009)"),

@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 
-/** 배송비 정책 응답. freeThreshold 이상 주문은 무료, 미만은 baseFee 부과. */
+/** 배송비 정책 응답 freeThreshold 이상 주문은 무료, 미만은 baseFee 부과 */
 @Schema(description = "배송비 정책 응답")
 public record ShippingPolicyResponse(
         @Schema(description = "기본 배송비 (무료기준 미만 주문에 부과)", example = "0") Long baseFee,

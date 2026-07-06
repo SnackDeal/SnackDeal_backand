@@ -26,7 +26,7 @@ public class DeliveryController {
     private final DeliveryService deliveryService;
 
     @Operation(summary = "내 배송지 목록 조회",
-            description = "현재 로그인한 사용자의 삭제되지 않은 배송지 목록을 조회한다. 기본 배송지가 우선 정렬된다. (Bearer 인증 필요)")
+            description = "현재 로그인한 사용자의 삭제되지 않은 배송지 목록을 조회 기본 배송지가 우선 정렬됨 (Bearer 인증 필요)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공 (CommonResponse<DeliveryListResponse>)"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 접근")
@@ -37,9 +37,9 @@ public class DeliveryController {
     }
 
     @Operation(summary = "배송지 등록",
-            description = "현재 로그인한 사용자의 배송지를 등록한다. 첫 배송지는 요청값과 관계없이 기본 배송지로 설정된다. "
-                    + "isDefault=true이면 기존 기본 배송지를 해제하고 새 배송지를 기본 배송지로 설정한다. "
-                    + "Kakao/Daum Postcode는 프론트엔드에서만 사용하며, 백엔드는 제출된 zipcode/address/detailAddress를 저장한다. "
+            description = "현재 로그인한 사용자의 배송지를 등록 첫 배송지는 요청값과 관계없이 기본 배송지로 설정됨 "
+                    + "isDefault=true이면 기존 기본 배송지를 해제하고 새 배송지를 기본 배송지로 설정 "
+                    + "Kakao/Daum Postcode는 프론트엔드에서만 사용하며, 백엔드는 제출된 zipcode/address/detailAddress를 저장 "
                     + "(Bearer 인증 필요)")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "등록 성공 (CommonResponse<DeliveryCreateResponse>)"),
@@ -54,8 +54,8 @@ public class DeliveryController {
     }
 
     @Operation(summary = "배송지 수정",
-            description = "현재 로그인한 사용자의 배송지만 수정할 수 있다. isDefault=false는 기존 기본 배송지를 해제하지 않는다. "
-                    + "isDefault=true이면 해당 배송지를 기본 배송지로 설정한다. (Bearer 인증 필요)")
+            description = "현재 로그인한 사용자의 배송지만 수정할 수 있다 isDefault=false는 기존 기본 배송지를 해제하지 않음 "
+                    + "isDefault=true이면 해당 배송지를 기본 배송지로 설정 (Bearer 인증 필요)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "수정 성공 (CommonResponse<DeliveryResponse>)"),
             @ApiResponse(responseCode = "400", description = "유효성 실패"),
@@ -71,7 +71,7 @@ public class DeliveryController {
     }
 
     @Operation(summary = "기본 배송지 설정",
-            description = "현재 로그인한 사용자의 배송지를 기본 배송지로 설정한다. 기존 기본 배송지는 해제된다. (Bearer 인증 필요)")
+            description = "현재 로그인한 사용자의 배송지를 기본 배송지로 설정 기존 기본 배송지는 해제됨 (Bearer 인증 필요)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "기본 배송지 설정 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 접근"),
@@ -85,8 +85,8 @@ public class DeliveryController {
     }
 
     @Operation(summary = "배송지 삭제",
-            description = "기본 배송지가 아닌 배송지만 삭제할 수 있다. 삭제는 deletedAt을 기록하는 soft delete이다. "
-                    + "기본 배송지는 삭제할 수 없으며, 먼저 다른 배송지를 기본 배송지로 변경해야 한다. (Bearer 인증 필요)")
+            description = "기본 배송지가 아닌 배송지만 삭제할 수 있다 삭제는 deletedAt을 기록하는 soft delete이다 "
+                    + "기본 배송지는 삭제할 수 없으며, 먼저 다른 배송지를 기본 배송지로 변경해야  (Bearer 인증 필요)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "삭제 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 접근"),

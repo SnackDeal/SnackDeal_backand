@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 관리자 로그인 API. Swagger 설명은 global 의 @AdminMainApiDocs 에서 가져온다.
+ * 관리자 로그인 API Swagger 설명은 global 의 @AdminMainApiDocs 에서 가져온다.
  */
 @AdminMainApiDocs.Doc
 @RestController

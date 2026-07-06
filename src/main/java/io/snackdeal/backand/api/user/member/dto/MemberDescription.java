@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * 회원 정보 응답. 내 정보 조회/수정, 관리자 회원 리스트/상세에서 공통으로 사용한다.
+ * 회원 정보 응답 내 정보 조회/수정, 관리자 회원 리스트/상세에서 공통으로 사용
  */
 @Schema(description = "회원 정보")
 public record MemberDescription(

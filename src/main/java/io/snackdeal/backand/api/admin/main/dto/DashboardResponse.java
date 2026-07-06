@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 관리자 대시보드 요약 응답.
- * 모든 값은 다른 도메인 테이블의 집계(파생)이며, DashboardService 에서 계산한다.
+ * 모든 값은 다른 도메인 테이블의 집계(파생)이며, DashboardService 에서 계산
  */
 @Schema(description = "관리자 대시보드 요약 지표")
 public record DashboardResponse(

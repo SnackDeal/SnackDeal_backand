@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-/** 관리자 주문 목록 응답 (페이징 메타 포함). page 는 0-base. */
+/** 관리자 주문 목록 응답 (페이징 메타 포함) page 는 0-base */
 @Schema(description = "관리자 주문 목록 응답")
 public record AdminOrderListResponse(
         @Schema(description = "주문 목록") List<AdminOrderSummaryResponse> orders,

@@ -19,9 +19,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * member 테이블에 provider_id 컬럼이 없어(스키마 고정) 이메일 기준으로만 매칭한다.
- * 신규 이메일이면 여기서 회원을 만들지 않고 isNewUser=true 만 표시한다.
- * 실제 가입(및 birth/gender/phone 입력)은 프론트 회원가입 화면 → /member/join 에서 완료한다.
+ * member 테이블에 provider_id 컬럼이 없어(스키마 고정) 이메일 기준으로만 매칭
+ * 신규 이메일이면 여기서 회원을 만들지 않고 isNewUser=true 만 표시
+ * 실제 가입(및 birth/gender/phone 입력)은 프론트 회원가입 화면 → /member/join 에서 완료
  */
 @Service
 @RequiredArgsConstructor
@@ -50,7 +50,7 @@ public class GoogleOAuth2MemberService implements OAuth2UserService<OAuth2UserRe
         attributes.put("isNewUser", member.isEmpty());
         attributes.put("role", member.map(m -> m.getRole().name()).orElse("USER"));
 
-        // DefaultOAuth2User는 authorities가 비어있으면 예외를 던지므로, 신규 유저에게는 임시로 GUEST 권한을 부여한다.
+        // DefaultOAuth2User는 authorities가 비어있으면 예외를 던지므로, 신규 유저에게는 임시로 GUEST 권한을 부여
         List<SimpleGrantedAuthority> authorities = member.isEmpty()
                 ? List.of(new SimpleGrantedAuthority("ROLE_GUEST"))
                 : List.of(new SimpleGrantedAuthority("ROLE_" + member.get().getRole().name()));

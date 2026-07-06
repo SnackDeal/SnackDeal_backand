@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 
-/** 관리자 주문 상태 변경 결과. 이 API 로 변경하면 manualOverride 가 true 가 된다. */
+/** 관리자 주문 상태 변경 결과 이 API 로 변경하면 manualOverride 가 true 가 됨 */
 @Schema(description = "관리자 주문 상태 변경 결과")
 public record AdminOrderStatusResponse(
         @Schema(description = "주문 ID", example = "123") Long id,

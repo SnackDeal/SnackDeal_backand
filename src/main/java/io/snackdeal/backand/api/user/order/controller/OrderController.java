@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 사용자 주문/결제 API.
  * 결제 흐름: prepare(주문 임시생성·금액확정) → 프론트 포트원 결제 → complete(서버 검증·확정).
- * 이후 주문내역 조회/상세/환불요청을 제공한다. "/order/**" 는 SecurityConfig 에서 인증 필요.
+ * 이후 주문내역 조회/상세/환불요청을 제공 "/order/**" 는 SecurityConfig 에서 인증 필요.
  */
 @OrderApiDocs.Doc
 @RestController

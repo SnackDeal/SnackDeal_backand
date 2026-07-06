@@ -22,7 +22,7 @@ import java.util.Map;
 @Service
 public class JwtTokenProvider {
 
-    // 토큰 서명/검증에 쓰는 비밀키 원문. 설정(custom.jwt.secrets.app-key)에서 주입
+    // 토큰 서명/검증에 쓰는 비밀키 원문 설정(custom.jwt.secrets.app-key)에서 주입
     private final String appKey;
 
     public JwtTokenProvider(@Value("${custom.jwt.secrets.app-key}") String appKey) {
@@ -45,8 +45,8 @@ public class JwtTokenProvider {
     }
 
     /*
-     * RefreshToken 발급. AccessToken 과 구분되도록 type="refresh" 클레임을 추가하고,
-     * 세션 식별자(sid)를 넣어 다중 로그인/강제 로그아웃 관리에 활용한다.
+     * RefreshToken 발급 AccessToken 과 구분되도록 type="refresh" 클레임을 추가하고,
+     * 세션 식별자(sid)를 넣어 다중 로그인/강제 로그아웃 관리에 활용
      */
     public String issueRefreshToken(long validateTime, String email, String sessionId) {
         return issue(validateTime, Map.of("email", email, "type", "refresh", "sid", sessionId));
@@ -54,7 +54,7 @@ public class JwtTokenProvider {
 
     /*
      * 토큰 유효성 검사.
-     * 파싱 중 서명 위조/만료/형식 오류가 나면 예외가 발생하는데, 이를 로깅 후 false 로 변환한다.
+     * 파싱 중 서명 위조/만료/형식 오류가 나면 예외가 발생하는데, 이를 로깅 후 false 로 변환
      * (호출부에서 try-catch 없이 boolean 으로 분기할 수 있게 하기 위함)
      */
     public boolean validate(String token) {
@@ -66,15 +66,15 @@ public class JwtTokenProvider {
         } catch (IllegalStateException ie) {
             log.info("토큰이 없거나 토큰에 문제가 있습니다! 토큰 : {}, 오류 메세지 : {}", token, ie.getMessage());
         } catch (Exception ex) {
-            log.info("토큰 유효성 검사 중 문제가 발생했습니다. 토큰 : {}, 오류 메세지 : {}", token, ex.getMessage());
+            log.info("토큰 유효성 검사 중 문제가 발생했습니다 토큰 : {}, 오류 메세지 : {}", token, ex.getMessage());
         }
 
         return false;
     }
 
     /*
-     * 토큰에서 클레임(payload)을 꺼낸다. 서명 검증에 실패하면 여기서 예외가 발생한다.
-     * (validate 는 이 메서드를 호출해 예외 여부로 유효성을 판단한다)
+     * 토큰에서 클레임(payload)을 꺼낸다 서명 검증에 실패하면 여기서 예외가 발생
+     * (validate 는 이 메서드를 호출해 예외 여부로 유효성을 판단)
      */
     public Map<String, Object> getClaims(String token) {
         JwtParser parser = Jwts.parser()
@@ -85,7 +85,7 @@ public class JwtTokenProvider {
         return result.getPayload();
     }
 
-    // 비밀키 원문(appKey)을 HMAC-SHA 서명용 SecretKey 로 변환. (키 길이는 256bit 이상이어야 함)
+    // 비밀키 원문(appKey)을 HMAC-SHA 서명용 SecretKey 로 변환 (키 길이는 256bit 이상이어야 함)
     private @NonNull SecretKey getSecretKey() {
         return Keys.hmacShaKeyFor(appKey.getBytes());
     }

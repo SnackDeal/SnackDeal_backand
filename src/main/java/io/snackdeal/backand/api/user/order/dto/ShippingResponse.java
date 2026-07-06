@@ -3,7 +3,7 @@ package io.snackdeal.backand.api.user.order.dto;
 import io.snackdeal.backand.domain.order.entity.ShippingStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/** 주문 상세의 배송지/배송상태 응답. */
+/** 주문 상세의 배송지/배송상태 응답 */
 @Schema(description = "배송지 및 배송 상태")
 public record ShippingResponse(
         @Schema(description = "수령인 이름", example = "홍길동") String receiverName,

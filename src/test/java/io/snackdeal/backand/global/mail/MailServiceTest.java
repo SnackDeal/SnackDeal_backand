@@ -27,7 +27,7 @@ class MailServiceTest {
     private MailProperties mailProperties;
 
     @Test
-    @DisplayName("send - 발신자/수신자/제목/본문을 담아 메일을 전송한다")
+    @DisplayName("send - 발신자/수신자/제목/본문을 담아 메일을 전송")
     void send_Success() {
         when(mailProperties.from()).thenReturn("noreply@snackdeal.io");
 

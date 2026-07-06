@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 배송비 정책 관리 서비스(관리자 전용).
- * 정책은 단일 행(id=1)으로 관리하며, 행이 없으면 기본값(무료기준 20,000 / 배송비 0)으로 생성한다.
+ * 정책은 단일 행(id=1)으로 관리하며, 행이 없으면 기본값(무료기준 20,000 / 배송비 0)으로 생성
  */
 @Service
 @RequiredArgsConstructor
@@ -34,7 +34,7 @@ public class ShippingPolicyService {
         return toResponse(policy);
     }
 
-    // 정책 행이 없으면 기본값으로 생성해 반환한다(H2/신규 환경 대비).
+    // 정책 행이 없으면 기본값으로 생성해 반환(H2/신규 환경 대비).
     private ShippingPolicy getOrCreate() {
         return shippingPolicyRepository.findById(POLICY_ID)
                 .orElseGet(() -> shippingPolicyRepository.save(ShippingPolicy.builder()
