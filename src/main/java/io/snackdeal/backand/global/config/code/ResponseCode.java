@@ -43,6 +43,7 @@ public enum ResponseCode {
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PR001", "상품을 찾을 수 없습니다."),
     OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "PR002", "재고가 부족합니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "PR003", "카테고리를 찾을 수 없습니다."),
+    DUPLICATE_CATEGORY(HttpStatus.CONFLICT, "PR004", "이미 존재하는 카테고리입니다."),
 
     // Cart
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CA001", "장바구니 항목을 찾을 수 없습니다."),
