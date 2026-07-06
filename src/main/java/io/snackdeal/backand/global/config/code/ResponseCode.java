@@ -10,6 +10,7 @@ public enum ResponseCode {
 
     // Success
     SUCCESS(HttpStatus.OK, "S000", "성공"),
+    CREATED(HttpStatus.CREATED, "S001", "성공"),
 
     // Member / Auth
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "M001", "이미 사용 중인 이메일입니다."),
@@ -50,6 +51,7 @@ public enum ResponseCode {
     ORDER_CANCEL_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "OR002", "취소할 수 없는 주문 상태입니다."),
     EMPTY_CART(HttpStatus.BAD_REQUEST, "OR003", "장바구니가 비어있습니다."),
     DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "OR004", "배송지를 찾을 수 없습니다."),
+    DELIVERY_DEFAULT_CANNOT_BE_DELETED(HttpStatus.CONFLICT, "OR005", "기본 배송지는 삭제할 수 없습니다."),
 
     // Coupon
     COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "CO001", "쿠폰을 찾을 수 없습니다."),

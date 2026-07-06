@@ -33,6 +33,10 @@ public class CommonResponse<T> {
         return of(ResponseCode.SUCCESS, data);
     }
 
+    public static <T> CommonResponse<T> created(T data) {
+        return of(ResponseCode.CREATED, data);
+    }
+
     public static <T> CommonResponse<T> successWithMessage(T data, ResponseCode responseCode) {
         return CommonResponse.<T>builder()
                 .success(true)
