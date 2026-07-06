@@ -5,7 +5,7 @@ import io.snackdeal.backand.domain.coupon.entity.UserCouponStatus;
 
 import java.time.LocalDateTime;
 
-/** 내가 보유한 쿠폰 응답. */
+/** 내가 보유한 쿠폰 응답 */
 public record MyCouponResponse(
         Long userCouponId,
         Long couponId,

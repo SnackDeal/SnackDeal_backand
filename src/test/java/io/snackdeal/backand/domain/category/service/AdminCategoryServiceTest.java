@@ -43,7 +43,7 @@ class AdminCategoryServiceTest {
     }
 
     @Test
-    @DisplayName("findList - 삭제되지 않은 카테고리 목록을 sortOrder ASC, id ASC 순으로 조회한다")
+    @DisplayName("findList - 삭제되지 않은 카테고리 목록을 sortOrder ASC, id ASC 순으로 조회")
     void findList_success() {
         // given
         Category category1 = createCategory(1L, "과자", 1);

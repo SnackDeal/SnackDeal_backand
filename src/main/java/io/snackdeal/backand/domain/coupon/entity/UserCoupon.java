@@ -39,7 +39,7 @@ public class UserCoupon {
         this.usedAt = LocalDateTime.now();
     }
 
-    // 주문 취소/환불로 사용을 되돌려 재사용 가능 상태로 복구한다.
+    // 주문 취소/환불로 사용을 되돌려 재사용 가능 상태로 복구
     public void restore() {
         this.status = UserCouponStatus.ACTIVE;
         this.usedAt = null;

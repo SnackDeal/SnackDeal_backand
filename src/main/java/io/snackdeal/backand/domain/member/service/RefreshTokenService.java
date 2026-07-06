@@ -22,7 +22,7 @@ public class RefreshTokenService {
 
     private final StringRedisTemplate redisTemplate;
 
-    // RefreshToken/세션의 TTL(ms). 이 시간이 지나면 Redis 에서 자동 삭제된다.
+    // RefreshToken/세션의 TTL(ms) 이 시간이 지나면 Redis 에서 자동 삭제됨
     @Value("${custom.jwt.refresh-expiration}")
     private long refreshExpiration;
 

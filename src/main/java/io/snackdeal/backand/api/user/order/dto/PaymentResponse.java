@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 
-/** 주문 상세의 결제 정보 응답 (금액 내역 + 결제수단). */
+/** 주문 상세의 결제 정보 응답 (금액 내역 + 결제수단) */
 @Schema(description = "결제 정보")
 public record PaymentResponse(
         @Schema(description = "상품 총액", example = "9000") Long productAmount,

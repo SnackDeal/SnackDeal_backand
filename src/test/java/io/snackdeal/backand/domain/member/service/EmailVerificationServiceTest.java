@@ -49,7 +49,7 @@ class EmailVerificationServiceTest {
     }
 
     @Test
-    @DisplayName("sendCode - 신규 이메일이면 인증코드를 발송하고 expiresIn(초)을 반환한다")
+    @DisplayName("sendCode - 신규 이메일이면 인증코드를 발송하고 expiresIn(초)을 반환")
     void sendCode_Success() {
         String email = "new@test.com";
         when(memberRepository.existsByEmail(email)).thenReturn(false);
@@ -97,7 +97,7 @@ class EmailVerificationServiceTest {
     }
 
     @Test
-    @DisplayName("verifyCode - 코드 일치 시 인증 토큰과 expiresIn을 반환한다")
+    @DisplayName("verifyCode - 코드 일치 시 인증 토큰과 expiresIn을 반환")
     void verifyCode_Success() {
         String email = "test@test.com";
         String code = "482913";

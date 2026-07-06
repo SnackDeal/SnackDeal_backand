@@ -22,7 +22,7 @@ public record DeliveryRequest(
         @NotBlank
         @Size(max = 20)
         @Pattern(regexp = "^0\\d{1,2}-\\d{3,4}-\\d{4}$",
-                message = "연락처는 하이픈을 포함한 형식으로 입력해야 합니다. 예: 010-1234-5678")
+                message = "연락처는 하이픈을 포함한 형식으로 입력해야 합니다 예: 010-1234-5678")
         String receiverPhone,
 
         @Schema(description = "우편번호(Kakao/Daum Postcode zonecode)", example = "06133", requiredMode = Schema.RequiredMode.REQUIRED)

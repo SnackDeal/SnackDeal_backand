@@ -20,8 +20,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
- * 관리자 주문 관리 API. 주문 리스트/상세 조회, 상태 변경, 환불 처리를 담당한다.
- * "/admin/**" 는 SecurityConfig 에서 ROLE_ADMIN 으로 보호된다.
+ * 관리자 주문 관리 API 주문 리스트/상세 조회, 상태 변경, 환불 처리를 담당
+ * "/admin/**" 는 SecurityConfig 에서 ROLE_ADMIN 으로 보호됨
  */
 @AdminOrderApiDocs.Doc
 @RestController
@@ -40,7 +40,7 @@ public class AdminOrderController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        // 기간 필터는 날짜만 받아 [시작일 00:00, 종료일 23:59:59.999] 범위로 변환한다.
+        // 기간 필터는 날짜만 받아 [시작일 00:00, 종료일 23:59:59.999] 범위로 변환
         LocalDateTime from = (dateFrom != null) ? dateFrom.atStartOfDay() : null;
         LocalDateTime to = (dateTo != null) ? dateTo.atTime(LocalTime.MAX) : null;
         return CommonResponse.success(adminOrderService.findList(keyword, status, from, to, page, size));

@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 /**
  * 대시보드 집계 단위테스트.
  * EntityManager(JPQL)와 MemberRepository 를 목으로 대체하고, 각 지표 쿼리 결과가
- * DashboardResponse 의 올바른 필드로 매핑되는지 검증한다.
+ * DashboardResponse 의 올바른 필드로 매핑되는지 검증
  */
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceTest {
@@ -58,7 +58,7 @@ class DashboardServiceTest {
     }
 
     @Test
-    @DisplayName("getSummary - 각 지표를 집계해 DashboardResponse 로 매핑한다")
+    @DisplayName("getSummary - 각 지표를 집계해 DashboardResponse 로 매핑")
     void getSummary() {
         stubQuery("count(o)", 12);              // 오늘 주문 수
         stubQuery("sum(o.finalAmount)", 340000);// 오늘 매출

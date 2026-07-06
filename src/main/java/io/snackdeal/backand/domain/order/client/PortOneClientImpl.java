@@ -15,9 +15,9 @@ import java.util.Map;
 /**
  * 포트원 V2(api.portone.io) 실제 API 연동 구현체.
  *
- * 인증: 별도 토큰 발급 없이 `Authorization: PortOne {API_SECRET}` 헤더를 그대로 사용한다.
+ * 인증: 별도 토큰 발급 없이 `Authorization: PortOne {API_SECRET}` 헤더를 그대로 사용
  * API Secret 은 코드에 하드코딩하지 않고 환경변수(custom.portone.api-secret)로 주입받으며,
- * 값이 비어 있어도(로컬/테스트) 빈 생성은 되고 실제 호출 시에만 포트원과 통신한다.
+ * 값이 비어 있어도(로컬/테스트) 빈 생성은 되고 실제 호출 시에만 포트원과 통신
  */
 @Component
 public class PortOneClientImpl implements PortOneClient {
@@ -62,13 +62,13 @@ public class PortOneClientImpl implements PortOneClient {
                     .retrieve()
                     .toBodilessEntity();
         } catch (Exception e) {
-            // 취소 실패는 검증 실패로 취급한다 (호출부에서 주문 실패 처리).
+            // 취소 실패는 검증 실패로 취급 (호출부에서 주문 실패 처리).
             throw new BusinessException(ResponseCode.PAYMENT_VERIFICATION_FAILED);
         }
     }
 
     /*
-     * V2 결제 객체에서 검증에 필요한 값만 추출한다.
+     * V2 결제 객체에서 검증에 필요한 값만 추출
      *  - amount.total: 결제 총액
      *  - method.type: 결제수단(PaymentMethodCard → Card 로 접두어 제거)
      *  - channel.pgProvider: PG사(TOSSPAYMENTS 등)

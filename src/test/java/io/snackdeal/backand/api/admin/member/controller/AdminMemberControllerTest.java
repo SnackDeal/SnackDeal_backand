@@ -37,7 +37,7 @@ class AdminMemberControllerTest {
     private MemberService memberService;
 
     @Test
-    @DisplayName("findAll - keyword/status 필터를 서비스에 전달하고 페이지를 반환한다")
+    @DisplayName("findAll - keyword/status 필터를 서비스에 전달하고 페이지를 반환")
     void findAll() {
         Page<MemberDescription> page = new PageImpl<>(List.of());
         when(memberService.search(eq("hong"), eq(MemberStatus.ACTIVE), any())).thenReturn(page);
@@ -50,7 +50,7 @@ class AdminMemberControllerTest {
     }
 
     @Test
-    @DisplayName("findById - 회원 상세를 조회한다")
+    @DisplayName("findById - 회원 상세를 조회")
     void findById() {
         MemberDescription expected = new MemberDescription(45L, "hong@test.com", "홍길동",
                 "01011112222", null, null, MemberStatus.ACTIVE, MemberRole.USER, null, null);
@@ -62,7 +62,7 @@ class AdminMemberControllerTest {
     }
 
     @Test
-    @DisplayName("changeStatus - 인증된 관리자 id를 함께 넘겨 상태 변경을 위임한다")
+    @DisplayName("changeStatus - 인증된 관리자 id를 함께 넘겨 상태 변경을 위임")
     void changeStatus() {
         MemberDetails admin = new MemberDetails(99L, "admin@test.com", "ENCODED", MemberRole.ADMIN);
         MemberStatusUpdateRequest request = new MemberStatusUpdateRequest(MemberStatus.INACTIVE, "6개월 미접속");

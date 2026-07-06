@@ -115,8 +115,8 @@ public class AuthService {
     }
 
     /*
-     * access/refresh 토큰을 함께 발급하고 RefreshToken 을 Redis 에 저장한다.
-     * 매 발급마다 새 세션ID(sid)를 부여해 로그인 세션을 구분한다.
+     * access/refresh 토큰을 함께 발급하고 RefreshToken 을 Redis 에 저장
+     * 매 발급마다 새 세션ID(sid)를 부여해 로그인 세션을 구분
      */
     public TokenResponse issueTokens(String email, MemberRole role) {
         String sessionId = UUID.randomUUID().toString();

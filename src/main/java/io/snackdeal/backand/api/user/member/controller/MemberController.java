@@ -12,7 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 사용자 회원 API. 이메일 인증 → 회원가입 → 로그인/로그아웃/토큰재발급 → 내 정보 조회/수정을 담당한다.
+ * 사용자 회원 API 이메일 인증 → 회원가입 → 로그인/로그아웃/토큰재발급 → 내 정보 조회/수정을 담당
  * 인증이 필요한 엔드포인트(me/updateMe/logout)는 @AuthenticationPrincipal 로 로그인 사용자 정보를 받는다.
  * Swagger 설명은 global 의 합성 어노테이션(@MemberApiDocs.*)에서 가져온다.
  */
@@ -40,7 +40,7 @@ public class MemberController {
         return CommonResponse.success(emailVerificationService.verifyCode(request.email(), request.code()));
     }
 
-    // 회원가입 (소셜 회원가입인 경우 가입과 동시에 로그인 토큰을 발급한다)
+    // 회원가입 (소셜 회원가입인 경우 가입과 동시에 로그인 토큰을 발급)
     @MemberApiDocs.Join
     @PostMapping("/join")
     public CommonResponse<JoinResponse> join(@Valid @RequestBody JoinRequest request) {
@@ -81,7 +81,7 @@ public class MemberController {
         return CommonResponse.success(memberService.findDescriptionByEmail(details.getEmail()));
     }
 
-    // 내 정보 수정 (휴대폰/비밀번호). 비밀번호 변경 시 현재 비밀번호 검증은 서비스에서 수행.
+    // 내 정보 수정 (휴대폰/비밀번호) 비밀번호 변경 시 현재 비밀번호 검증은 서비스에서 수행.
     @MemberApiDocs.UpdateMe
     @PatchMapping("/me")
     public CommonResponse<MemberDescription> updateMe(@AuthenticationPrincipal MemberDetails details,

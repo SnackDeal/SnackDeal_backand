@@ -24,7 +24,7 @@ class AdminDashboardControllerTest {
     private DashboardService dashboardService;
 
     @Test
-    @DisplayName("main - 대시보드 집계 결과를 그대로 감싸 반환한다")
+    @DisplayName("main - 대시보드 집계 결과를 그대로 감싸 반환")
     void main() {
         DashboardResponse expected = new DashboardResponse(12, 340000, 5, 3, 6);
         when(dashboardService.getSummary()).thenReturn(expected);

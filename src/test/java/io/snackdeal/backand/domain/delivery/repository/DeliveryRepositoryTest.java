@@ -33,8 +33,8 @@ class DeliveryRepositoryTest {
         class Context_with_mixed_deliveries {
 
             @Test
-            @DisplayName("It: 같은 회원의 삭제되지 않은 배송지만 기본 배송지 우선, id 내림차순으로 조회한다")
-            void It_활성_배송지를_정렬하여_조회한다() {
+            @DisplayName("It: 같은 회원의 삭제되지 않은 배송지만 기본 배송지 우선, id 내림차순으로 조회")
+            void It_활성_배송지를_정렬하여_조회() {
                 // given
                 Delivery normalOld = deliveryRepository.save(createDelivery(MEMBER_ID, false));
                 Delivery defaultDelivery = deliveryRepository.save(createDelivery(MEMBER_ID, true));
@@ -66,8 +66,8 @@ class DeliveryRepositoryTest {
         class Context_with_mixed_defaults {
 
             @Test
-            @DisplayName("It: 같은 회원의 삭제되지 않은 기본 배송지만 조회한다")
-            void It_활성_기본_배송지만_조회한다() {
+            @DisplayName("It: 같은 회원의 삭제되지 않은 기본 배송지만 조회")
+            void It_활성_기본_배송지만_조회() {
                 // given
                 Delivery activeDefault = deliveryRepository.save(createDelivery(MEMBER_ID, true));
                 deliveryRepository.save(createDelivery(MEMBER_ID, false));
@@ -95,8 +95,8 @@ class DeliveryRepositoryTest {
         class Context_with_active_and_deleted {
 
             @Test
-            @DisplayName("It: 활성 배송지만 조회하고 삭제된 배송지는 조회하지 않는다")
-            void It_활성_배송지만_단건_조회한다() {
+            @DisplayName("It: 활성 배송지만 조회하고 삭제된 배송지는 조회하지 않음")
+            void It_활성_배송지만_단건_조회() {
                 // given
                 Delivery activeDelivery = deliveryRepository.save(createDelivery(MEMBER_ID, false));
                 Delivery deletedDelivery = deliveryRepository.save(createDelivery(MEMBER_ID, false));
@@ -124,8 +124,8 @@ class DeliveryRepositoryTest {
         class Context_with_active_member_and_deleted_only_member {
 
             @Test
-            @DisplayName("It: 활성 배송지가 있는 회원만 true를 반환한다")
-            void It_활성_배송지_존재_여부를_확인한다() {
+            @DisplayName("It: 활성 배송지가 있는 회원만 true를 반환")
+            void It_활성_배송지_존재_여부를_확인() {
                 // given
                 deliveryRepository.save(createDelivery(MEMBER_ID, false));
 

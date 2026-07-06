@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * 관리자 주문 상세.
- * 사용자용 상세와 달리 스케줄러 상태, imp_uid, 사용 쿠폰 상세 등 관리 정보를 함께 반환한다.
+ * 사용자용 상세와 달리 스케줄러 상태, imp_uid, 사용 쿠폰 상세 등 관리 정보를 함께 반환
  * 스케줄러 미도입 상태이므로 scheduledNextStatus/scheduledNextAt 은 항상 null 로 내려간다.
  */
 @Schema(description = "관리자 주문 상세")

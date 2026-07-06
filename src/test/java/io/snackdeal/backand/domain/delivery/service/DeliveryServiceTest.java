@@ -46,7 +46,7 @@ class DeliveryServiceTest {
         class Context_without_delivery {
 
             @Test
-            @DisplayName("It: isDefault 요청값이 false여도 기본 배송지로 저장한다")
+            @DisplayName("It: isDefault 요청값이 false여도 기본 배송지로 저장")
             void It_첫_배송지는_기본_배송지로_저장된다() {
                 // given
                 DeliveryRequest request = createRequest(false);
@@ -71,7 +71,7 @@ class DeliveryServiceTest {
         class Context_with_existing_delivery_and_normal_request {
 
             @Test
-            @DisplayName("It: 기존 기본 배송지는 유지하고 새 배송지는 기본 배송지가 아닌 상태로 저장한다")
+            @DisplayName("It: 기존 기본 배송지는 유지하고 새 배송지는 기본 배송지가 아닌 상태로 저장")
             void It_새_배송지는_일반_배송지로_저장된다() {
                 // given
                 DeliveryRequest request = createRequest(false);
@@ -95,8 +95,8 @@ class DeliveryServiceTest {
         class Context_with_existing_default_and_default_request {
 
             @Test
-            @DisplayName("It: 기존 기본 배송지를 해제하고 새 배송지를 기본으로 저장한다")
-            void It_기존_기본_배송지를_해제하고_새_배송지를_기본으로_저장한다() {
+            @DisplayName("It: 기존 기본 배송지를 해제하고 새 배송지를 기본으로 저장")
+            void It_기존_기본_배송지를_해제하고_새_배송지를_기본으로_저장() {
                 // given
                 Delivery existingDefault = createDelivery(1L, MEMBER_ID, true);
                 DeliveryRequest request = createRequest(true);
@@ -127,8 +127,8 @@ class DeliveryServiceTest {
         class Context_update_default_delivery_with_false_default_request {
 
             @Test
-            @DisplayName("It: 기존 기본 배송지 상태를 해제하지 않는다")
-            void It_주소만_수정하고_기본_배송지_상태는_유지한다() {
+            @DisplayName("It: 기존 기본 배송지 상태를 해제하지 않음")
+            void It_주소만_수정하고_기본_배송지_상태는_유지() {
                 // given
                 Delivery target = createDelivery(20L, MEMBER_ID, true);
                 DeliveryRequest request = createRequest(
@@ -207,8 +207,8 @@ class DeliveryServiceTest {
         class Context_mark_normal_delivery_as_default {
 
             @Test
-            @DisplayName("It: 기존 기본 배송지를 해제하고 대상 배송지를 기본으로 지정한다")
-            void It_대상_배송지만_기본_배송지로_지정한다() {
+            @DisplayName("It: 기존 기본 배송지를 해제하고 대상 배송지를 기본으로 지정")
+            void It_대상_배송지만_기본_배송지로_지정() {
                 // given
                 Delivery previousDefault = createDelivery(30L, MEMBER_ID, true);
                 Delivery target = createDelivery(31L, MEMBER_ID, false);
@@ -229,8 +229,8 @@ class DeliveryServiceTest {
         class Context_normalize_duplicate_default_deliveries {
 
             @Test
-            @DisplayName("It: 대상 배송지만 기본 배송지로 남기고 나머지는 해제한다")
-            void It_중복_기본_배송지를_정리한다() {
+            @DisplayName("It: 대상 배송지만 기본 배송지로 남기고 나머지는 해제")
+            void It_중복_기본_배송지를_정리() {
                 // given
                 Delivery target = createDelivery(40L, MEMBER_ID, true);
                 Delivery anotherDefault = createDelivery(41L, MEMBER_ID, true);
@@ -260,8 +260,8 @@ class DeliveryServiceTest {
         class Context_delete_normal_delivery {
 
             @Test
-            @DisplayName("It: deletedAt을 기록하여 소프트 삭제한다")
-            void It_일반_배송지를_소프트_삭제한다() {
+            @DisplayName("It: deletedAt을 기록하여 소프트 삭제")
+            void It_일반_배송지를_소프트_삭제() {
                 // given
                 Delivery target = createDelivery(50L, MEMBER_ID, false);
                 given(deliveryRepository.findByIdAndDeletedAtIsNull(50L)).willReturn(Optional.of(target));
@@ -280,7 +280,7 @@ class DeliveryServiceTest {
         class Context_delete_default_delivery {
 
             @Test
-            @DisplayName("It: DELIVERY_DEFAULT_CANNOT_BE_DELETED 예외를 발생시키고 삭제하지 않는다")
+            @DisplayName("It: DELIVERY_DEFAULT_CANNOT_BE_DELETED 예외를 발생시키고 삭제하지 않음")
             void It_DELIVERY_DEFAULT_CANNOT_BE_DELETED_예외를_발생시킨다() {
                 // given
                 Delivery target = createDelivery(51L, MEMBER_ID, true);

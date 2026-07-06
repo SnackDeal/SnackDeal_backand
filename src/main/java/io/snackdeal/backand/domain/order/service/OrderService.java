@@ -58,15 +58,15 @@ import java.util.concurrent.ThreadLocalRandom;
  * 결제 흐름(포트원 SDK → 토스페이먼츠 테스트결제):
  *   prepare(주문 PENDING 임시생성 + 금액 확정, 재고는 체크만) → 프론트 결제 → complete(서버 금액 재검증 + 확정)
  *
- * 재고 차감/쿠폰 사용은 결제 검증이 성공한 complete 시점에 트랜잭션 안에서 원자적으로 처리한다.
- * 검증 실패(미결제/금액 위변조) 시 예외를 던져 트랜잭션을 롤백하고 포트원 결제를 취소한다
- * → 주문은 PENDING 으로 남고 재고/쿠폰은 건드리지 않으므로 되돌릴 상태가 없다.
+ * 재고 차감/쿠폰 사용은 결제 검증이 성공한 complete 시점에 트랜잭션 안에서 원자적으로 처리
+ * 검증 실패(미결제/금액 위변조) 시 예외를 던져 트랜잭션을 롤백하고 포트원 결제를 취소
+ * → 주문은 PENDING 으로 남고 재고/쿠폰은 건드리지 않으므로 되돌릴 상태가 없음
  */
 @Service
 @RequiredArgsConstructor
 public class OrderService {
 
-    // 배송비 정책 기본값: 정책 행이 없을 때만 사용 (무료기준 20,000 / 배송비 0). 실제 값은 shipping_policy(관리자 변경).
+    // 배송비 정책 기본값: 정책 행이 없을 때만 사용 (무료기준 20,000 / 배송비 0) 실제 값은 shipping_policy(관리자 변경).
     private static final long SHIPPING_POLICY_ID = 1L;
     private static final long DEFAULT_FREE_THRESHOLD = 20000L;
     private static final long DEFAULT_BASE_FEE = 0L;
@@ -85,15 +85,15 @@ public class OrderService {
     private final MemberRepository memberRepository;
     private final PortOneClient portOneClient;
 
-    // 프론트 결제창(requestPayment)에 필요한 공개값. prepare 응답으로 함께 내려준다.
+    // 프론트 결제창(requestPayment)에 필요한 공개값 prepare 응답으로 함께 내려준다.
     @org.springframework.beans.factory.annotation.Value("${custom.portone.store-id:}")
     private String portoneStoreId;
     @org.springframework.beans.factory.annotation.Value("${custom.portone.channel-key:}")
     private String portoneChannelKey;
 
     /*
-     * 주문 준비. 주문을 PENDING 으로 임시 생성하고 결제 예정 금액을 확정한다.
-     * 재고는 미리 체크(SELECT)만 하고 차감하지 않는다 → 결제창 진입 전 품절이면 즉시 차단.
+     * 주문 준비 주문을 PENDING 으로 임시 생성하고 결제 예정 금액을 확정
+     * 재고는 미리 체크(SELECT)만 하고 차감하지 않음 → 결제창 진입 전 품절이면 즉시 차단.
      */
     @Transactional
     public OrderPrepareResponse prepare(String email, OrderPrepareRequest request) {
@@ -139,7 +139,7 @@ public class OrderService {
                     .build());
         }
 
-        // 배송지 + 결제(READY) 생성. merchant_uid 는 주문번호와 동일하게 둔다.
+        // 배송지 + 결제(READY) 생성 merchant_uid 는 주문번호와 동일하게 둔다.
         shippingRepository.save(Shipping.builder()
                 .orderId(order.getId())
                 .receiverName(shipping.receiverName())
@@ -163,15 +163,16 @@ public class OrderService {
 
     /*
      * 결제 검증 및 주문 확정.
-     * imp_uid 로 포트원 실제 결제금액을 조회해 DB 예정금액과 비교한다.
+     * imp_uid 로 포트원 실제 결제금액을 조회해 DB 예정금액과 비교
      *  - 일치: 재고 차감 + 쿠폰 사용 + 주문 PAYMENT_COMPLETED + 결제 PAID (트랜잭션 원자 처리)
      *  - 불일치/미결제: 포트원 결제취소 호출 후 예외 → 롤백(주문은 PENDING 유지, 재고/쿠폰 미변경)
      */
     @Transactional
     public OrderCompleteResponse complete(String email, OrderCompleteRequest request) {
         Member member = findMember(email);
-        // V2 는 paymentId 가 주문번호(merchant 지정값)와 동일하다.
-        Orders order = ordersRepository.findByOrderNumber(request.paymentId())
+        // V2 는 paymentId 가 주문번호(merchant 지정값)와 동일없음
+        // 중복 완료 방지: 락 걸고 조회
+        Orders order = ordersRepository.findByOrderNumberForUpdate(request.paymentId())
                 .orElseThrow(() -> new BusinessException(ResponseCode.ORDER_NOT_FOUND));
         if (!order.getMemberId().equals(member.getId())) {
             throw new BusinessException(ResponseCode.ORDER_ACCESS_DENIED);
@@ -191,10 +192,10 @@ public class OrderService {
             throw new BusinessException(ResponseCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
-        // 재고 재확인 + 차감
+        // 재고 재확인 + 차감 (오버셀 방지: 락 걸고 조회)
         List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
         for (OrderItem item : items) {
-            Product product = productRepository.findById(item.getProductId())
+            Product product = productRepository.findByIdForUpdate(item.getProductId())
                     .orElseThrow(() -> new BusinessException(ResponseCode.PRODUCT_NOT_FOUND));
             if (product.getStock() < item.getQuantity()) {
                 throw new BusinessException(ResponseCode.ORDER_OUT_OF_STOCK);
@@ -223,7 +224,7 @@ public class OrderService {
     }
 
     /*
-     * 내 주문내역 (최신순 페이징). 대표 상품명/상품 종류 수를 함께 계산한다.
+     * 내 주문내역 (최신순 페이징) 대표 상품명/상품 종류 수를 함께 계산
      */
     @Transactional(readOnly = true)
     public OrderListResponse findList(String email, int page, int size) {
@@ -245,7 +246,7 @@ public class OrderService {
     }
 
     /*
-     * 주문 상세. 본인 주문만 조회 가능(타인 접근 403). 상품별 내역 + 배송지 + 결제 정보를 반환한다.
+     * 주문 상세 본인 주문만 조회 가능(타인 접근 403) 상품별 내역 + 배송지 + 결제 정보를 반환
      */
     @Transactional(readOnly = true)
     public OrderResponse findById(String email, Long orderId) {
@@ -280,8 +281,8 @@ public class OrderService {
     }
 
     /*
-     * 환불 요청. 결제완료/배송준비중 상태에서만 가능하며 주문을 REFUND_REQUESTED 로 바꾼다.
-     * 배송중/배송완료 등은 고객센터 문의 대상이므로 요청을 차단한다(422). 승인/거절은 관리자 API 담당.
+     * 환불 요청 결제완료/배송준비중 상태에서만 가능하며 주문을 REFUND_REQUESTED 로 바꾼다.
+     * 배송중/배송완료 등은 고객센터 문의 대상이므로 요청을 차단(422) 승인/거절은 관리자 API 담당.
      */
     @Transactional
     public RefundResponse refund(String email, Long orderId, RefundRequest request) {
@@ -307,7 +308,7 @@ public class OrderService {
                 .orElseThrow(() -> new BusinessException(ResponseCode.MEMBER_NOT_FOUND));
     }
 
-    // 관리자 설정(shipping_policy)에 따라 배송비를 계산한다. 정책 행이 없으면 기본값으로 대체.
+    // 관리자 설정(shipping_policy)에 따라 배송비를 계산 정책 행이 없으면 기본값으로 대체.
     private long resolveShippingFee(long productAmount) {
         return shippingPolicyRepository.findById(SHIPPING_POLICY_ID)
                 .map(policy -> policy.calculateFee(productAmount))
@@ -315,8 +316,8 @@ public class OrderService {
     }
 
     /*
-     * 배송지 확정. deliveryId 가 있으면 주소록에서 채우고(본인 것만),
-     * 없으면 요청 shipping 을 그대로 쓴다. 둘 다 없으면 입력값 누락(400).
+     * 배송지 확정 deliveryId 가 있으면 주소록에서 채우고(본인 것만),
+     * 없으면 요청 shipping 을 그대로 쓴다 둘 다 없으면 입력값 누락(400).
      */
     private ShippingRequest resolveShipping(Member member, OrderPrepareRequest request) {
         if (request.deliveryId() != null) {
@@ -379,7 +380,7 @@ public class OrderService {
                 .orElse(null);
     }
 
-    // 주문번호: ORD-yyyyMMdd-XXXXX (5자리 난수). unique 제약으로 충돌 시 재시도한다.
+    // 주문번호: ORD-yyyyMMdd-XXXXX (5자리 난수) unique 제약으로 충돌 시 재시도
     private String generateOrderNumber() {
         for (int attempt = 0; attempt < 5; attempt++) {
             String candidate = "ORD-" + LocalDate.now().format(ORDER_DATE)
@@ -388,7 +389,7 @@ public class OrderService {
                 return candidate;
             }
         }
-        // 극히 드문 연속 충돌 대비: 타임스탬프 꼬리를 덧붙여 유일성을 보장한다.
+        // 극히 드문 연속 충돌 대비: 타임스탬프 꼬리를 덧붙여 유일성을 보장
         return "ORD-" + LocalDate.now().format(ORDER_DATE) + "-" + System.nanoTime();
     }
 

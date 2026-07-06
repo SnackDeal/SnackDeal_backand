@@ -101,7 +101,7 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("prepare - 재고 확인 후 금액을 확정하고 주문/결제/배송을 생성한다")
+    @DisplayName("prepare - 재고 확인 후 금액을 확정하고 주문/결제/배송을 생성")
     void prepare_success() {
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product(1L, 4500L, 10)));
@@ -117,7 +117,7 @@ class OrderServiceTest {
 
         OrderPrepareResponse response = orderService.prepare(EMAIL, request);
 
-        // 정책 행 없음 → 기본값(무료기준 20,000 / 배송비 0). 상품 9,000 < 20,000 이지만 기본 배송비 0 → 9,000
+        // 정책 행 없음 → 기본값(무료기준 20,000 / 배송비 0) 상품 9,000 < 20,000 이지만 기본 배송비 0 → 9,000
         assertEquals(9000L, response.amount());
         assertEquals(EMAIL, response.buyerEmail());
         assertTrue(response.paymentId().startsWith("ORD-"));
@@ -127,7 +127,7 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("prepare - 배송비 정책이 설정돼 있으면 그 값으로 배송비를 계산한다")
+    @DisplayName("prepare - 배송비 정책이 설정돼 있으면 그 값으로 배송비를 계산")
     void prepare_appliesShippingPolicy() {
         io.snackdeal.backand.domain.order.entity.ShippingPolicy policy =
                 io.snackdeal.backand.domain.order.entity.ShippingPolicy.builder()
@@ -153,7 +153,7 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("prepare - 재고 부족이면 결제창 진입 전에 차단한다")
+    @DisplayName("prepare - 재고 부족이면 결제창 진입 전에 차단")
     void prepare_outOfStock() {
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product(1L, 4500L, 1)));
@@ -177,11 +177,11 @@ class OrderServiceTest {
                 .productId(1L).orderId(100L).build();
 
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
-        when(ordersRepository.findByOrderNumber("ORD-1")).thenReturn(Optional.of(order));
+        when(ordersRepository.findByOrderNumberForUpdate("ORD-1")).thenReturn(Optional.of(order));
         when(portOneClient.getPayment("ORD-1")).thenReturn(new PortOnePayment(
                 "ORD-1", 12000L, "PAID", "Card", "TOSSPAYMENTS", "http://receipt", LocalDateTime.now()));
         when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(item));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(product));
         when(paymentRepository.findByOrderId(100L)).thenReturn(Optional.of(payment));
 
         OrderCompleteResponse response = orderService.complete(EMAIL, new OrderCompleteRequest("ORD-1"));
@@ -198,7 +198,7 @@ class OrderServiceTest {
         Orders order = order(100L, 12000L, 1L, OrderStatus.PENDING_PAYMENT);
 
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
-        when(ordersRepository.findByOrderNumber("ORD-1")).thenReturn(Optional.of(order));
+        when(ordersRepository.findByOrderNumberForUpdate("ORD-1")).thenReturn(Optional.of(order));
         when(portOneClient.getPayment("ORD-1")).thenReturn(new PortOnePayment(
                 "ORD-1", 5000L, "PAID", "Card", "TOSSPAYMENTS", "http://receipt", LocalDateTime.now()));
 
@@ -206,7 +206,7 @@ class OrderServiceTest {
                 () -> orderService.complete(EMAIL, new OrderCompleteRequest("ORD-1")));
         assertEquals(ResponseCode.PAYMENT_AMOUNT_MISMATCH, e.getResponseCode());
         verify(portOneClient).cancelPayment(eq("ORD-1"), any());
-        verify(productRepository, never()).findById(any());
+        verify(productRepository, never()).findByIdForUpdate(any());
     }
 
     @Test
@@ -215,7 +215,7 @@ class OrderServiceTest {
         Orders order = order(100L, 12000L, 1L, OrderStatus.PENDING_PAYMENT);
 
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
-        when(ordersRepository.findByOrderNumber("ORD-1")).thenReturn(Optional.of(order));
+        when(ordersRepository.findByOrderNumberForUpdate("ORD-1")).thenReturn(Optional.of(order));
         when(portOneClient.getPayment("ORD-1")).thenReturn(new PortOnePayment(
                 "ORD-1", 12000L, "READY", null, null, null, null));
 

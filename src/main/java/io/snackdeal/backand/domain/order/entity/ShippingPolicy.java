@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 
 /**
  * 배송비 정책 (단일 행 설정, id=1 고정).
- * baseFee: 무료기준 미만일 때 부과할 배송비. freeThreshold: 이 금액 이상 주문 시 무료.
- * 관리자 API 로 변경할 수 있으며, 값이 없으면 서비스가 기본값(무료기준 20,000 / 배송비 0)으로 동작한다.
+ * baseFee: 무료기준 미만일 때 부과할 배송비 freeThreshold: 이 금액 이상 주문 시 무료.
+ * 관리자 API 로 변경할 수 있으며, 값이 없으면 서비스가 기본값(무료기준 20,000 / 배송비 0)으로 동작
  */
 @Getter
 @Entity
@@ -35,7 +35,7 @@ public class ShippingPolicy {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 배송비/무료기준 변경. null 인 항목은 기존 값을 유지한다(부분 수정).
+    // 배송비/무료기준 변경 null 인 항목은 기존 값을 유지(부분 수정).
     public void update(Long baseFee, Long freeThreshold) {
         if (baseFee != null) {
             this.baseFee = baseFee;

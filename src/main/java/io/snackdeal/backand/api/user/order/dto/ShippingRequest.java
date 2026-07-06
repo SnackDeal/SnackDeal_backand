@@ -3,7 +3,7 @@ package io.snackdeal.backand.api.user.order.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-/** 배송지 입력. 주소록(delivery)에서 선택하거나 직접 입력한다. */
+/** 배송지 입력 주소록(delivery)에서 선택하거나 직접 입력 */
 @Schema(description = "배송지 입력")
 public record ShippingRequest(
         @Schema(description = "수령인 이름", example = "홍길동", requiredMode = Schema.RequiredMode.REQUIRED)

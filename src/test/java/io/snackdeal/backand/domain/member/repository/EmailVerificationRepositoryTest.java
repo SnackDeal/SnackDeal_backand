@@ -31,7 +31,7 @@ class EmailVerificationRepositoryTest {
     }
 
     @Test
-    @DisplayName("findTopByEmailOrderByIdDesc - 같은 이메일이면 가장 최근(id 큰) 인증을 반환한다")
+    @DisplayName("findTopByEmailOrderByIdDesc - 같은 이메일이면 가장 최근(id 큰) 인증을 반환")
     void findTopByEmailOrderByIdDesc() {
         String email = "hong@test.com";
         save(email, "111111"); // 먼저 발송(오래된 것)

@@ -3,7 +3,7 @@ package io.snackdeal.backand.api.user.order.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * 주문 준비 응답. 프론트가 이 값으로 포트원 V2 결제창을 띄운다.
+ * 주문 준비 응답 프론트가 이 값으로 포트원 V2 결제창을 띄운다.
  * paymentId(=주문번호)·결제 예정 금액(amount)·구매자 정보와 함께,
  * 결제창에 필요한 storeId/channelKey(공개값, 서버 설정에서 주입)를 내려줘 프론트 하드코딩을 없앤다.
  */

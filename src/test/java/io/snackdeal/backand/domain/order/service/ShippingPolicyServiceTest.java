@@ -27,7 +27,7 @@ class ShippingPolicyServiceTest {
     private ShippingPolicyRepository shippingPolicyRepository;
 
     @Test
-    @DisplayName("get - 정책 행이 없으면 기본값(무료기준 20,000 / 배송비 0)으로 생성해 반환한다")
+    @DisplayName("get - 정책 행이 없으면 기본값(무료기준 20,000 / 배송비 0)으로 생성해 반환")
     void get_createsDefault() {
         when(shippingPolicyRepository.findById(1L)).thenReturn(Optional.empty());
         when(shippingPolicyRepository.save(any(ShippingPolicy.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -39,7 +39,7 @@ class ShippingPolicyServiceTest {
     }
 
     @Test
-    @DisplayName("update - null 항목은 기존 값을 유지하고 지정 항목만 변경한다")
+    @DisplayName("update - null 항목은 기존 값을 유지하고 지정 항목만 변경")
     void update_partial() {
         ShippingPolicy policy = ShippingPolicy.builder().id(1L).baseFee(0L).freeThreshold(20000L).build();
         when(shippingPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));

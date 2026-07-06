@@ -1,7 +1,7 @@
 -- =====================================================================
 -- 개발용 시드 데이터 (팀 공유용).
--- V19 에 이어서 추가로 넣는다. FK 는 ID 하드코딩 대신 이메일/이름 기준
--- 서브쿼리로 참조하므로 auto_increment 값이 달라도 안전하다.
+-- V19 에 이어서 추가로 넣는다 FK 는 ID 하드코딩 대신 이메일/이름 기준
+-- 서브쿼리로 참조하므로 auto_increment 값이 달라도 안전없음
 -- 추가 회원의 비밀번호는 기존 user 계정과 동일한 'user1234' 이다.
 -- =====================================================================
 
@@ -128,7 +128,7 @@ INSERT INTO delivery (name, receiver_name, receiver_phone, zipcode, address, det
 -- 공지사항 (6개)
 -- ---------------------------------------------------------------------
 INSERT INTO notice (title, content, is_pinned, created_at) VALUES
-('서비스 오픈 안내',        'SnackDeal 서비스가 오픈했습니다. 많은 이용 바랍니다.', 1, NOW()),
+('서비스 오픈 안내',        'SnackDeal 서비스가 오픈했습니다 많은 이용 바랍니다.', 1, NOW()),
 ('개인정보 처리방침 개정',  '개인정보 처리방침이 개정되었습니다.',                  0, NOW()),
 ('추석 배송 일정 안내',     '추석 연휴 배송 일정을 안내드립니다.',                  1, NOW()),
 ('앱 업데이트 안내',        '더 나은 서비스를 위해 앱이 업데이트되었습니다.',       0, NOW()),
@@ -163,9 +163,9 @@ INSERT INTO qna (type, title, content, attachment_url, is_answered, created_at, 
 -- 문의 답변 (3개, is_answered=1 인 문의에 연결)
 -- ---------------------------------------------------------------------
 INSERT INTO qna_answer (content, answered_at, qna_id) VALUES
-('주문 취소 처리해드렸습니다. 확인 부탁드립니다.', NOW(), (SELECT id FROM qna WHERE title='주문 취소 요청합니다')),
+('주문 취소 처리해드렸습니다 확인 부탁드립니다.', NOW(), (SELECT id FROM qna WHERE title='주문 취소 요청합니다')),
 ('배송사에 확인 요청했으며 곧 도착 예정입니다.',   NOW(), (SELECT id FROM qna WHERE title='배송이 안 와요')),
-('파손 상품은 무상 교환해드립니다. 접수되었습니다.', NOW(), (SELECT id FROM qna WHERE title='상품이 파손되어 왔어요'));
+('파손 상품은 무상 교환해드립니다 접수되었습니다.', NOW(), (SELECT id FROM qna WHERE title='상품이 파손되어 왔어요'));
 
 -- ---------------------------------------------------------------------
 -- 주문 (6개) - order_number 유니크, member 는 이메일로 조회

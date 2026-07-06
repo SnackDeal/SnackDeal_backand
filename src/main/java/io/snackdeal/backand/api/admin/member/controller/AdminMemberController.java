@@ -16,8 +16,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 관리자 회원 관리 API. 회원 리스트 조회(검색/필터), 상세 조회, 상태 변경을 담당한다.
- * "/admin/**" 는 SecurityConfig 에서 ROLE_ADMIN 으로 보호된다.
+ * 관리자 회원 관리 API 회원 리스트 조회(검색/필터), 상세 조회, 상태 변경을 담당
+ * "/admin/**" 는 SecurityConfig 에서 ROLE_ADMIN 으로 보호됨
  */
 @AdminMemberApiDocs.Doc
 @RestController
@@ -44,7 +44,7 @@ public class AdminMemberController {
         return CommonResponse.success(memberService.findById(id));
     }
 
-    // 회원 상태 변경. 본인 계정 변경 차단을 위해 요청 관리자(admin) 정보를 함께 넘긴다.
+    // 회원 상태 변경 본인 계정 변경 차단을 위해 요청 관리자(admin) 정보를 함께 넘긴다.
     @AdminMemberApiDocs.ChangeStatus
     @PatchMapping("/{id}/status")
     public CommonResponse<MemberStatusResponse> changeStatus(@AuthenticationPrincipal MemberDetails admin,

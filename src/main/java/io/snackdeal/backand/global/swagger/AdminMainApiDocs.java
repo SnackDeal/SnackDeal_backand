@@ -27,7 +27,7 @@ public interface AdminMainApiDocs {
     @Retention(RetentionPolicy.RUNTIME)
     @SecurityRequirements
     @Operation(summary = "관리자 로그인",
-            description = "이메일/비밀번호로 로그인하고, 역할이 ADMIN 인 경우에만 토큰을 발급한다.\n\n"
+            description = "이메일/비밀번호로 로그인하고, 역할이 ADMIN 인 경우에만 토큰을 발급\n\n"
                     + "**샘플 관리자 계정**: `admin@snackdeal.io` / `admin1234`")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "로그인 성공 (access/refresh 토큰)"),
@@ -40,7 +40,7 @@ public interface AdminMainApiDocs {
     // 관리자 로그아웃
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
-    @Operation(summary = "관리자 로그아웃", description = "Redis 의 RefreshToken/세션을 삭제해 로그인 세션을 무효화한다.")
+    @Operation(summary = "관리자 로그아웃", description = "Redis 의 RefreshToken/세션을 삭제해 로그인 세션을 무효화")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
             @ApiResponse(responseCode = "401", description = "인증 필요")
@@ -52,7 +52,7 @@ public interface AdminMainApiDocs {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @Operation(summary = "대시보드 요약 지표",
-            description = "오늘 주문 수/매출, 신규 회원 수, 저재고 상품 수, 미답변 QnA 수를 집계해 반환한다. (관리자 전용)")
+            description = "오늘 주문 수/매출, 신규 회원 수, 저재고 상품 수, 미답변 QnA 수를 집계해 반환 (관리자 전용)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "403", description = "관리자 권한 없음")

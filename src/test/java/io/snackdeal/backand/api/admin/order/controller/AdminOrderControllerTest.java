@@ -35,7 +35,7 @@ class AdminOrderControllerTest {
     private AdminOrderService adminOrderService;
 
     @Test
-    @DisplayName("list - 필터/기간을 서비스에 전달하고, 날짜는 시간 범위로 변환한다")
+    @DisplayName("list - 필터/기간을 서비스에 전달하고, 날짜는 시간 범위로 변환")
     void list() {
         AdminOrderListResponse expected = new AdminOrderListResponse(List.of(), 0, 20, 0);
         when(adminOrderService.findList(eq("hong"), eq(OrderStatus.PREPARING_SHIPMENT), any(), any(), eq(0), eq(20)))
@@ -49,7 +49,7 @@ class AdminOrderControllerTest {
     }
 
     @Test
-    @DisplayName("findById - 주문 상세를 위임한다")
+    @DisplayName("findById - 주문 상세를 위임")
     void findById() {
         AdminOrderDetailResponse expected = new AdminOrderDetailResponse(
                 123L, "ORD-1", OrderStatus.PREPARING_SHIPMENT, null, null, null, null, null, false,
@@ -62,7 +62,7 @@ class AdminOrderControllerTest {
     }
 
     @Test
-    @DisplayName("changeStatus - 상태 변경을 위임한다")
+    @DisplayName("changeStatus - 상태 변경을 위임")
     void changeStatus() {
         AdminOrderStatusRequest request = new AdminOrderStatusRequest(OrderStatus.SHIPPED, null, null, null);
         AdminOrderStatusResponse expected = new AdminOrderStatusResponse(123L, "ORD-1", OrderStatus.SHIPPED, true, null, null, null, null);
@@ -75,7 +75,7 @@ class AdminOrderControllerTest {
     }
 
     @Test
-    @DisplayName("refund - 환불 처리를 위임한다")
+    @DisplayName("refund - 환불 처리를 위임")
     void refund() {
         AdminRefundRequest request = new AdminRefundRequest(true, null, null);
         AdminRefundResponse expected = AdminRefundResponse.approved(123L, "ORD-1", null, true, false);

@@ -39,16 +39,16 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 관리자 주문 관리 서비스. 주문 리스트/상세 조회, 상태 변경, 환불 처리(승인/거절)를 담당한다.
+ * 관리자 주문 관리 서비스 주문 리스트/상세 조회, 상태 변경, 환불 처리(승인/거절)를 담당
  *
- * 이 API 로 상태를 바꾸면 manualOverride 가 켜져 (추후 도입될) 스케줄러 자동 진행 대상에서 제외된다.
- * 취소/환불 승인 시 재고·쿠폰 복구는 트랜잭션 안에서 처리한다(테스트 결제라 실제 PG 환불은 생략).
+ * 이 API 로 상태를 바꾸면 manualOverride 가 켜져 (추후 도입될) 스케줄러 자동 진행 대상에서 제외됨
+ * 취소/환불 승인 시 재고·쿠폰 복구는 트랜잭션 안에서 처리(테스트 결제라 실제 PG 환불은 생략).
  */
 @Service
 @RequiredArgsConstructor
 public class AdminOrderService {
 
-    // 관리자 상태 변경 API 로 지정 가능한 상태값. 결제/환불 상태는 각 전용 API 가 관리하므로 제외한다.
+    // 관리자 상태 변경 API 로 지정 가능한 상태값 결제/환불 상태는 각 전용 API 가 관리하므로 제외
     private static final Set<OrderStatus> ASSIGNABLE_STATUSES = EnumSet.of(
             OrderStatus.PREPARING_SHIPMENT, OrderStatus.SHIPPED,
             OrderStatus.COMPLETED, OrderStatus.CANCELLED);
@@ -64,7 +64,7 @@ public class AdminOrderService {
 
     /*
      * 주문 리스트 검색(최신순 페이징).
-     * keyword 는 주문번호 또는 구매자(email/이름)로 매칭한다. 구매자 검색은 회원 검색으로 id 목록을 풀어
+     * keyword 는 주문번호 또는 구매자(email/이름)로 매칭 구매자 검색은 회원 검색으로 id 목록을 풀어
      * 주문 쿼리의 IN 절에 넘긴다(주문 테이블에는 memberId 만 있으므로).
      */
     @Transactional(readOnly = true)
@@ -73,7 +73,7 @@ public class AdminOrderService {
                                            int page, int size) {
         String normalizedKeyword = (keyword != null && !keyword.isBlank()) ? keyword : null;
 
-        // 구매자 키워드 → 회원 id 목록. IN 절이 비면 안 되므로 최소 sentinel(-1)을 채운다.
+        // 구매자 키워드 → 회원 id 목록 IN 절이 비면 안 되므로 최소 sentinel(-1)을 채운다.
         List<Long> memberIds = List.of(-1L);
         if (normalizedKeyword != null) {
             List<Long> matched = memberRepository.search(normalizedKeyword, null, Pageable.unpaged())
@@ -103,7 +103,7 @@ public class AdminOrderService {
     }
 
     /*
-     * 주문 상세. 사용자용과 달리 스케줄러 상태(미도입 → null), imp_uid, 사용 쿠폰 상세를 함께 반환한다.
+     * 주문 상세 사용자용과 달리 스케줄러 상태(미도입 → null), imp_uid, 사용 쿠폰 상세를 함께 반환
      */
     @Transactional(readOnly = true)
     public AdminOrderDetailResponse findById(Long id) {
@@ -143,8 +143,8 @@ public class AdminOrderService {
 
     /*
      * 주문 상태 변경.
-     * 허용 상태값·전이 규칙을 검증하고, CANCELLED 시 재고·쿠폰을 복구한다.
-     * 변경 시 manualOverride 가 true 가 된다.
+     * 허용 상태값·전이 규칙을 검증하고, CANCELLED 시 재고·쿠폰을 복구
+     * 변경 시 manualOverride 가 true 가 됨
      */
     @Transactional
     public AdminOrderStatusResponse changeStatus(Long id, AdminOrderStatusRequest request) {
@@ -178,10 +178,10 @@ public class AdminOrderService {
     }
 
     /*
-     * 환불 처리. REFUND_REQUESTED 상태의 주문만 대상.
-     *  - 승인: 주문 REFUND_COMPLETED + 결제 CANCELLED + (기본) 재고 복구. 쿠폰은 MVP 정책상 복구하지 않음.
+     * 환불 처리 REFUND_REQUESTED 상태의 주문만 대상.
+     *  - 승인: 주문 REFUND_COMPLETED + 결제 CANCELLED + (기본) 재고 복구 쿠폰은 MVP 정책상 복구하지 않음.
      *  - 거절: 요청 직전 상태로 복귀 (거절 사유 필수).
-     * 실제 PG 환불 API 는 호출하지 않는다(테스트 결제).
+     * 실제 PG 환불 API 는 호출하지 않음(테스트 결제).
      */
     @Transactional
     public AdminRefundResponse refund(Long id, AdminRefundRequest request) {
@@ -207,7 +207,7 @@ public class AdminOrderService {
             restoreStock(order);
             stockRestored = true;
         }
-        // 쿠폰은 유효기간이 남아 있을 때만 복구한다.
+        // 쿠폰은 유효기간이 남아 있을 때만 복구
         boolean couponRestored = restoreCoupon(order);
         paymentRepository.findByOrderId(order.getId()).ifPresent(Payment::markCancelled);
         order.approveRefund();
@@ -245,8 +245,8 @@ public class AdminOrderService {
     }
 
     /*
-     * 사용 쿠폰 복구. 정책: 쿠폰 유효기간(validUntil)이 남아 있으면 재사용 가능하도록 되돌리고,
-     * 이미 만료됐으면 복구하지 않는다. 복구 여부를 반환한다.
+     * 사용 쿠폰 복구 정책: 쿠폰 유효기간(validUntil)이 남아 있으면 재사용 가능하도록 되돌리고,
+     * 이미 만료됐으면 복구하지 않음 복구 여부를 반환
      */
     private boolean restoreCoupon(Orders order) {
         if (order.getUserCouponId() == null) {

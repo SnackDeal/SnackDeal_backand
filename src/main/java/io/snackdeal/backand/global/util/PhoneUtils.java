@@ -5,7 +5,7 @@ public class PhoneUtils {
     private PhoneUtils() {}
 
     /**
-     * 하이픈 없는 번호를 하이픈 포함 형식으로 변환한다.
+     * 하이픈 없는 번호를 하이픈 포함 형식으로 변환
      * 이미 하이픈이 있으면 그대로 반환.
      * 010-XXXX-XXXX / 02-XXX-XXXX / 031-XXX-XXXX 등 일반 패턴 지원.
      */

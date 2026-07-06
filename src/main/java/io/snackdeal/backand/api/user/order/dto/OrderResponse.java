@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/** 주문 상세 응답 (상품별 내역 + 배송지 + 결제 정보). */
+/** 주문 상세 응답 (상품별 내역 + 배송지 + 결제 정보) */
 @Schema(description = "주문 상세 응답")
 public record OrderResponse(
         @Schema(description = "주문 ID", example = "123") Long orderId,

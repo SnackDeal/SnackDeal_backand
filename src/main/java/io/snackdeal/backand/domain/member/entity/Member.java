@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * 회원 엔티티.
- * 탈퇴는 실제 삭제(hard delete)하지 않고 status=DELETED + deletedAt 기록으로 처리하여 주문/문의 이력을 보존한다.
+ * 탈퇴는 실제 삭제(hard delete)하지 않고 status=DELETED + deletedAt 기록으로 처리하여 주문/문의 이력을 보존
  * status/gender/role 은 문자열로 저장(@Enumerated STRING)하여 DB 값의 가독성을 높인다.
  */
 @Schema(description = "회원 엔티티")
@@ -79,7 +79,7 @@ public class Member {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 프로필 부분 수정: null 인 항목은 건너뛰어 기존 값을 유지한다 (phone/password 각각 선택 변경)
+    // 프로필 부분 수정: null 인 항목은 건너뛰어 기존 값을 유지 (phone/password 각각 선택 변경)
     public void updateProfile(String phone, String password) {
         if (phone != null) {
             this.phone = phone;
@@ -95,7 +95,7 @@ public class Member {
         this.lastLogin = LocalDateTime.now();
     }
 
-    // 상태 변경. DELETED 로 바뀔 때는 탈퇴 시각(deletedAt)도 함께 남긴다.
+    // 상태 변경 DELETED 로 바뀔 때는 탈퇴 시각(deletedAt)도 함께 남긴다.
     public void changeStatus(MemberStatus status) {
         this.status = status;
         this.updatedAt = LocalDateTime.now();

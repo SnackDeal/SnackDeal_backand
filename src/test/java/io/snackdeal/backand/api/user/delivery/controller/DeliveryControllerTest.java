@@ -48,7 +48,7 @@ class DeliveryControllerTest {
         class Context_with_authenticated_member {
 
             @Test
-            @DisplayName("It: 인증된 사용자 id로 배송지 목록을 조회하고 CommonResponse로 감싸 반환한다")
+            @DisplayName("It: 인증된 사용자 id로 배송지 목록을 조회하고 CommonResponse로 감싸 반환")
             void It_내_배송지_목록_조회_성공() {
                 // given
                 DeliveryListResponse expected = new DeliveryListResponse(List.of(deliveryResponse()));
@@ -76,7 +76,7 @@ class DeliveryControllerTest {
         class Context_with_valid_request {
 
             @Test
-            @DisplayName("It: 인증된 사용자 id와 요청으로 배송지를 등록하고 CommonResponse로 감싸 반환한다")
+            @DisplayName("It: 인증된 사용자 id와 요청으로 배송지를 등록하고 CommonResponse로 감싸 반환")
             void It_배송지_등록_성공() {
                 // given
                 DeliveryRequest request = validRequest();
@@ -105,7 +105,7 @@ class DeliveryControllerTest {
         class Context_with_valid_request {
 
             @Test
-            @DisplayName("It: 인증된 사용자 id, 배송지 id, 요청으로 배송지를 수정하고 CommonResponse로 감싸 반환한다")
+            @DisplayName("It: 인증된 사용자 id, 배송지 id, 요청으로 배송지를 수정하고 CommonResponse로 감싸 반환")
             void It_배송지_수정_성공() {
                 // given
                 DeliveryRequest request = validRequest();
@@ -130,8 +130,8 @@ class DeliveryControllerTest {
         class Context_with_forbidden_exception {
 
             @Test
-            @DisplayName("It: BusinessException을 그대로 전파한다")
-            void It_FORBIDDEN_ACCESS_예외를_전파한다() {
+            @DisplayName("It: BusinessException을 그대로 전파")
+            void It_FORBIDDEN_ACCESS_예외를_전파() {
                 // given
                 DeliveryRequest request = validRequest();
                 given(deliveryService.update(MEMBER_ID, DELIVERY_ID, request))
@@ -150,8 +150,8 @@ class DeliveryControllerTest {
         class Context_with_not_found_exception {
 
             @Test
-            @DisplayName("It: BusinessException을 그대로 전파한다")
-            void It_DELIVERY_NOT_FOUND_예외를_전파한다() {
+            @DisplayName("It: BusinessException을 그대로 전파")
+            void It_DELIVERY_NOT_FOUND_예외를_전파() {
                 // given
                 DeliveryRequest request = validRequest();
                 given(deliveryService.update(MEMBER_ID, DELIVERY_ID, request))
@@ -175,7 +175,7 @@ class DeliveryControllerTest {
         class Context_with_authenticated_member {
 
             @Test
-            @DisplayName("It: 인증된 사용자 id와 배송지 id로 기본 배송지를 설정하고 성공 응답을 반환한다")
+            @DisplayName("It: 인증된 사용자 id와 배송지 id로 기본 배송지를 설정하고 성공 응답을 반환")
             void It_기본_배송지_설정_성공() {
                 // when
                 CommonResponse<Void> response = deliveryController.markDefault(memberDetails(), DELIVERY_ID);
@@ -199,7 +199,7 @@ class DeliveryControllerTest {
         class Context_with_authenticated_member {
 
             @Test
-            @DisplayName("It: 인증된 사용자 id와 배송지 id로 배송지를 삭제하고 성공 응답을 반환한다")
+            @DisplayName("It: 인증된 사용자 id와 배송지 id로 배송지를 삭제하고 성공 응답을 반환")
             void It_배송지_삭제_성공() {
                 // when
                 CommonResponse<Void> response = deliveryController.delete(memberDetails(), DELIVERY_ID);
@@ -218,8 +218,8 @@ class DeliveryControllerTest {
         class Context_with_default_delete_exception {
 
             @Test
-            @DisplayName("It: BusinessException을 그대로 전파한다")
-            void It_DELIVERY_DEFAULT_CANNOT_BE_DELETED_예외를_전파한다() {
+            @DisplayName("It: BusinessException을 그대로 전파")
+            void It_DELIVERY_DEFAULT_CANNOT_BE_DELETED_예외를_전파() {
                 // given
                 willThrow(new BusinessException(ResponseCode.DELIVERY_DEFAULT_CANNOT_BE_DELETED))
                         .given(deliveryService)

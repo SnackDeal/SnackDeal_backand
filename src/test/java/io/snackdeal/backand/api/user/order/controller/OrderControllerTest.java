@@ -40,7 +40,7 @@ class OrderControllerTest {
     private final MemberDetails details = new MemberDetails(1L, "u@test.com", "ENCODED", MemberRole.USER);
 
     @Test
-    @DisplayName("prepare - 로그인 이메일과 요청을 서비스에 위임한다")
+    @DisplayName("prepare - 로그인 이메일과 요청을 서비스에 위임")
     void prepare() {
         OrderPrepareRequest request = new OrderPrepareRequest(
                 List.of(new OrderItemRequest(1L, 2)), null,
@@ -56,7 +56,7 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("complete - 결제 검증 요청을 위임한다")
+    @DisplayName("complete - 결제 검증 요청을 위임")
     void complete() {
         OrderCompleteRequest request = new OrderCompleteRequest("ORD-1");
         when(orderService.complete(eq("u@test.com"), eq(request))).thenReturn(null);
@@ -67,7 +67,7 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("list - page/size 를 서비스에 전달한다")
+    @DisplayName("list - page/size 를 서비스에 전달")
     void list() {
         OrderListResponse expected = new OrderListResponse(List.of(), 0, 10, 0);
         when(orderService.findList("u@test.com", 0, 10)).thenReturn(expected);
@@ -78,7 +78,7 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("findById - 주문 상세 조회를 위임한다")
+    @DisplayName("findById - 주문 상세 조회를 위임")
     void findById() {
         OrderResponse expected = new OrderResponse(1L, "ORD-1", null, OrderStatus.PAYMENT_COMPLETED,
                 List.of(), null, null);
@@ -90,7 +90,7 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("refund - 환불 요청을 위임한다")
+    @DisplayName("refund - 환불 요청을 위임")
     void refund() {
         RefundRequest request = new RefundRequest("단순 변심");
         RefundResponse expected = new RefundResponse(1L, "ORD-1", OrderStatus.REFUND_REQUESTED);
