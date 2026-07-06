@@ -56,4 +56,21 @@ public class Delivery {
         this.isDefault = false;
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void updateAddress(String name, String receiverName, String receiverPhone, String zipcode,
+                              String address, String detailAddress) {
+        this.name = name;
+        this.receiverName = receiverName;
+        this.receiverPhone = receiverPhone;
+        this.zipcode = zipcode;
+        this.address = address;
+        this.detailAddress = detailAddress;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void markDeleted() {
+        this.deletedAt = LocalDateTime.now();
+        this.updatedAt = this.deletedAt;
+        this.isDefault = false;
+    }
 }
