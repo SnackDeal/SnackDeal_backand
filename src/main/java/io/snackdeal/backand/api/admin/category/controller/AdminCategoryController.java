@@ -1,9 +1,14 @@
 package io.snackdeal.backand.api.admin.category.controller;
 
+import io.snackdeal.backand.api.admin.category.dto.CategoryRequest;
+import io.snackdeal.backand.api.admin.category.dto.CategoryResponse;
 import io.snackdeal.backand.domain.category.service.AdminCategoryService;
 import io.snackdeal.backand.global.config.dto.CommonResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/category")
@@ -13,17 +18,17 @@ public class AdminCategoryController {
     private final AdminCategoryService adminCategoryService;
 
     @GetMapping
-    public CommonResponse<Object> list() {
+    public CommonResponse<List<CategoryResponse>> list() {
         return CommonResponse.success(adminCategoryService.findList());
     }
 
     @PostMapping
-    public CommonResponse<Object> save(@RequestBody Object request) {
+    public CommonResponse<CategoryResponse> save(@Valid @RequestBody CategoryRequest request) {
         return CommonResponse.success(adminCategoryService.save(request));
     }
 
     @PutMapping("/{id}")
-    public CommonResponse<Object> update(@PathVariable Long id, @RequestBody Object request) {
+    public CommonResponse<CategoryResponse> update(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
         return CommonResponse.success(adminCategoryService.update(id, request));
     }
 
