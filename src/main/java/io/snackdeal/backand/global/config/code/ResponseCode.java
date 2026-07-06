@@ -23,6 +23,7 @@ public enum ResponseCode {
     SELF_STATUS_CHANGE_FORBIDDEN(HttpStatus.FORBIDDEN, "M009", "본인 계정의 상태는 변경할 수 없습니다."),
     INVALID_MEMBER_STATUS_TRANSITION(HttpStatus.UNPROCESSABLE_ENTITY, "M010", "탈퇴한 회원의 상태는 변경할 수 없습니다."),
     ACCOUNT_DELETED(HttpStatus.UNAUTHORIZED, "M011", "탈퇴한 계정입니다."),
+    PASSWORD_REQUIRED(HttpStatus.BAD_REQUEST, "M012", "일반 회원가입 시 비밀번호는 필수입니다."),
 
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "A001", "비밀번호가 일치하지 않습니다."),
     USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "A002", "존재하지 않는 사용자입니다."),
