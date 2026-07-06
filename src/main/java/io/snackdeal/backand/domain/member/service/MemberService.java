@@ -12,6 +12,7 @@ import io.snackdeal.backand.domain.member.entity.MemberRole;
 import io.snackdeal.backand.domain.member.entity.MemberStatus;
 import io.snackdeal.backand.domain.member.mapper.MemberMapper;
 import io.snackdeal.backand.domain.member.repository.MemberRepository;
+import io.snackdeal.backand.global.util.PhoneUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID; // UUID import 추가
 
 @Service
 @RequiredArgsConstructor
@@ -34,22 +37,36 @@ public class MemberService implements UserDetailsService {
 
     @Transactional
     public MemberDescription join(JoinRequest request) {
-        String verifiedEmail = emailVerificationService.getVerifiedEmail(request.verificationToken());
-        if (!verifiedEmail.equals(request.email())) {
-            throw new BusinessException(ResponseCode.EMAIL_TOKEN_INVALID);
+        if (!request.socialLogin()) {
+            String verifiedEmail = emailVerificationService.getVerifiedEmail(request.verificationToken());
+            if (!verifiedEmail.equals(request.email())) {
+                throw new BusinessException(ResponseCode.EMAIL_TOKEN_INVALID);
+            }
         }
 
         if (repository.findByEmail(request.email()).isPresent()) {
             throw new BusinessException(ResponseCode.DUPLICATE_EMAIL);
         }
 
+        String rawPassword;
+        if (request.socialLogin()) {
+            // 소셜 로그인 사용자의 경우, 임의의 강력한 비밀번호를 생성하여 저장
+            rawPassword = UUID.randomUUID().toString();
+        } else {
+            if (request.password() == null || request.password().isBlank()) {
+                throw new BusinessException(ResponseCode.PASSWORD_REQUIRED);
+            }
+            // 일반 회원가입 사용자의 경우, 요청에서 받은 비밀번호 사용
+            rawPassword = request.password();
+        }
+
         Member member = Member.builder()
                 .email(request.email())
-                .password(passwordEncoder.encode(request.password()))
+                .password(passwordEncoder.encode(rawPassword)) // 인코딩된 비밀번호 저장
                 .name(request.name())
                 .birth(request.birth())
                 .gender(request.gender())
-                .phone(request.phone())
+                .phone(PhoneUtils.format(request.phone()))
                 .role(MemberRole.USER)
                 .build();
 
@@ -100,7 +117,7 @@ public class MemberService implements UserDetailsService {
         }
 
         // phone/password 중 null 인 항목은 엔티티 쪽에서 건너뛴다 (부분 수정)
-        member.updateProfile(request.phone(), encodedPassword);
+        member.updateProfile(PhoneUtils.format(request.phone()), encodedPassword);
         return MemberMapper.toDescription(member);
     }
 

@@ -37,6 +37,17 @@ public interface AdminMainApiDocs {
     @interface AdminLogin {
     }
 
+    // 관리자 로그아웃
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(summary = "관리자 로그아웃", description = "Redis 의 RefreshToken/세션을 삭제해 로그인 세션을 무효화한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 필요")
+    })
+    @interface AdminLogout {
+    }
+
     // 대시보드 요약 (관리자 인증 필요)
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)

@@ -40,11 +40,16 @@ public class MemberController {
         return CommonResponse.success(emailVerificationService.verifyCode(request.email(), request.code()));
     }
 
-    // 회원가입
+    // 회원가입 (소셜 회원가입인 경우 가입과 동시에 로그인 토큰을 발급한다)
     @MemberApiDocs.Join
     @PostMapping("/join")
-    public CommonResponse<MemberDescription> join(@Valid @RequestBody JoinRequest request) {
-        return CommonResponse.success(memberService.join(request));
+    public CommonResponse<JoinResponse> join(@Valid @RequestBody JoinRequest request) {
+        MemberDescription member = memberService.join(request);
+        if (request.socialLogin()) {
+            TokenResponse tokens = authService.issueTokens(member.email(), member.role());
+            return CommonResponse.success(JoinResponse.of(member, tokens));
+        }
+        return CommonResponse.success(JoinResponse.of(member));
     }
 
     // 로그인

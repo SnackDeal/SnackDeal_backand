@@ -87,11 +87,11 @@ class MemberServiceTest {
         when(passwordEncoder.matches("old", "ENCODED_OLD")).thenReturn(true);
         when(passwordEncoder.encode("newP@ss1!")).thenReturn("ENCODED_NEW");
 
-        MemberUpdateRequest request = new MemberUpdateRequest("01099998888", "old", "newP@ss1!");
+        MemberUpdateRequest request = new MemberUpdateRequest("010-9999-8888", "old", "newP@ss1!");
 
         var result = memberService.updateProfile(m.getEmail(), request);
 
-        assertEquals("01099998888", result.phone());
+        assertEquals("010-9999-8888", result.phone());
         assertEquals("ENCODED_NEW", m.getPassword());
     }
 
@@ -164,7 +164,7 @@ class MemberServiceTest {
 
     private JoinRequest joinRequest(String email) {
         return new JoinRequest(email, "newP@ss1!", "홍길동",
-                LocalDate.of(2000, 1, 1), Gender.MALE, "01011112222", "vtoken");
+                LocalDate.of(2000, 1, 1), Gender.MALE, "01011112222", "vtoken", false);
     }
 
     @Test

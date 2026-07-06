@@ -28,6 +28,9 @@ spring:
             enable: true
 
 custom:
+  front:
+    url: ${FRONT_URL:http://localhost:5173}
+
   jwt:
     secrets:
       app-key: ${JWT_APP_KEY}
@@ -40,6 +43,18 @@ custom:
   email-verification:
     code-expiration: ${EMAIL_CODE_EXPIRATION:300000}
     token-expiration: ${EMAIL_TOKEN_EXPIRATION:1800000}
+
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3200,http://localhost:8000}
+
+  # 포트원 V2 결제 연동.
+  #  - api-secret: 백엔드 검증용(콘솔 "V2 API Secret")
+  #  - store-id / channel-key: 프론트 결제창(requestPayment)용. prepare 응답으로 내려준다(공개값).
+  portone:
+    api-url: ${PORTONE_API_URL:https://api.portone.io}
+    api-secret: ${PORTONE_API_SECRET:}
+    store-id: ${PORTONE_STORE_ID:}
+    channel-key: ${PORTONE_CHANNEL_KEY:}
 
 management:
   endpoints:
