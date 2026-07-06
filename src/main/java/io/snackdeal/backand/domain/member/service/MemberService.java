@@ -24,6 +24,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID; // UUID import 추가
+
 @Service
 @RequiredArgsConstructor
 public class MemberService implements UserDetailsService {
@@ -35,18 +37,32 @@ public class MemberService implements UserDetailsService {
 
     @Transactional
     public MemberDescription join(JoinRequest request) {
-        String verifiedEmail = emailVerificationService.getVerifiedEmail(request.verificationToken());
-        if (!verifiedEmail.equals(request.email())) {
-            throw new BusinessException(ResponseCode.EMAIL_TOKEN_INVALID);
+        if (!request.socialLogin()) {
+            String verifiedEmail = emailVerificationService.getVerifiedEmail(request.verificationToken());
+            if (!verifiedEmail.equals(request.email())) {
+                throw new BusinessException(ResponseCode.EMAIL_TOKEN_INVALID);
+            }
         }
 
         if (repository.findByEmail(request.email()).isPresent()) {
             throw new BusinessException(ResponseCode.DUPLICATE_EMAIL);
         }
 
+        String rawPassword;
+        if (request.socialLogin()) {
+            // 소셜 로그인 사용자의 경우, 임의의 강력한 비밀번호를 생성하여 저장
+            rawPassword = UUID.randomUUID().toString();
+        } else {
+            if (request.password() == null || request.password().isBlank()) {
+                throw new BusinessException(ResponseCode.PASSWORD_REQUIRED);
+            }
+            // 일반 회원가입 사용자의 경우, 요청에서 받은 비밀번호 사용
+            rawPassword = request.password();
+        }
+
         Member member = Member.builder()
                 .email(request.email())
-                .password(passwordEncoder.encode(request.password()))
+                .password(passwordEncoder.encode(rawPassword)) // 인코딩된 비밀번호 저장
                 .name(request.name())
                 .birth(request.birth())
                 .gender(request.gender())

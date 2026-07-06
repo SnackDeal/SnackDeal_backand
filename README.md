@@ -157,7 +157,12 @@ JWT + Redis 세션(중복 로그인 방지), 이메일을 로그인 식별자로
 1. `TokenAuthenticationFilter`가 `Authorization: Bearer <token>`을 검증하고 `sid` 클레임을 Redis `session:{email}` 값과 비교.
 2. 로그인 성공 시 `AuthService.issueTokens`가 액세스·리프레시 토큰 발급, 리프레시 토큰은 `RefreshTokenService`가 Redis에 저장.
 3. Google OAuth2는 `member` 테이블에 `provider_id` 컬럼이 없어(스키마 고정) **이메일 기준으로만** 매칭한다. 최초 로그인 시 자동가입되며, 스키마상 NOT NULL인 `birth`/`gender`/`phone`은 임시값(2000-01-01/MALE/빈 문자열)으로 채운다 — 프론트에서 최초 로그인 후 추가 정보 입력 화면으로 보완하는 것을 전제로 한 임시 조치이니 실제 서비스 전에 검토 필요.
-4. 관리자 로그인(`/admin/login`)은 일반 로그인과 동일한 검증을 거치되 `role == ADMIN`이 아니면 거부한다.
+4. **Google OAuth2 로그인 설정**:
+   * `application-google.yml` 프로파일을 활성화해야 합니다 (`SPRING_PROFILES_ACTIVE` 환경변수에 `google` 추가).
+   * Google Cloud Console에서 OAuth 2.0 클라이언트 ID를 생성하고, 발급받은 `클라이언트 ID`와 `클라이언트 보안 비밀`을 각각 `GOOGLE_CLIENT_ID`와 `GOOGLE_CLIENT_SECRET` 환경변수로 설정해야 합니다.
+   * 리다이렉트 URI는 `http://localhost:8080/oauth2/authorization/google` (개발 환경 기준)으로 설정해야 합니다.
+   * Google OAuth2는 `member` 테이블에 `provider_id` 컬럼이 없어(스키마 고정) **이메일 기준으로만** 매칭합니다. 최초 로그인 시 자동가입되며, 스키마상 NOT NULL인 `birth`/`gender`/`phone`은 임시값(2000-01-01/MALE/빈 문자열)으로 채워집니다. 프론트엔드에서 최초 로그인 후 추가 정보 입력 화면으로 보완하는 것을 전제로 한 임시 조치이니 실제 서비스 전에 검토가 필요합니다.
+5. 관리자 로그인(`/admin/login`)은 일반 로그인과 동일한 검증을 거치되 `role == ADMIN`이 아니면 거부한다.
 
 ### 데이터베이스 마이그레이션
 

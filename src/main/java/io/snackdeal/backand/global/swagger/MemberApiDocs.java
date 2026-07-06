@@ -58,9 +58,11 @@ public interface MemberApiDocs {
     @Retention(RetentionPolicy.RUNTIME)
     @SecurityRequirements
     @Operation(summary = "회원가입",
-            description = "이메일 인증 토큰(verificationToken)으로 인증을 확인한 뒤 회원을 생성한다.")
+            description = "이메일 인증 토큰(verificationToken)으로 인증을 확인한 뒤 회원을 생성한다.\n\n"
+                    + "isSocialLogin=true 인 소셜 회원가입은 이메일 인증 토큰 검증을 생략하고, "
+                    + "가입과 동시에 access/refresh 토큰을 발급하여 별도 로그인 없이 세션을 시작한다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "가입 성공 (생성된 회원 정보 반환)"),
+            @ApiResponse(responseCode = "200", description = "가입 성공 (data.member = 생성된 회원 정보, 소셜 가입 시 data.accessToken/refreshToken 함께 발급)"),
             @ApiResponse(responseCode = "400", description = "유효성 실패 또는 인증 토큰 무효"),
             @ApiResponse(responseCode = "409", description = "이미 가입된 이메일")
     })

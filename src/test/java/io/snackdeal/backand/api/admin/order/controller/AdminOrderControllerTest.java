@@ -64,8 +64,8 @@ class AdminOrderControllerTest {
     @Test
     @DisplayName("changeStatus - 상태 변경을 위임한다")
     void changeStatus() {
-        AdminOrderStatusRequest request = new AdminOrderStatusRequest(OrderStatus.SHIPPED, null);
-        AdminOrderStatusResponse expected = new AdminOrderStatusResponse(123L, "ORD-1", OrderStatus.SHIPPED, true, null);
+        AdminOrderStatusRequest request = new AdminOrderStatusRequest(OrderStatus.SHIPPED, null, null, null);
+        AdminOrderStatusResponse expected = new AdminOrderStatusResponse(123L, "ORD-1", OrderStatus.SHIPPED, true, null, null, null, null);
         when(adminOrderService.changeStatus(123L, request)).thenReturn(expected);
 
         CommonResponse<AdminOrderStatusResponse> response = adminOrderController.changeStatus(123L, request);

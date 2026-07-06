@@ -12,6 +12,9 @@ public record AdminOrderStatusResponse(
         @Schema(description = "주문번호", example = "ORD-20260705-00123") String orderNumber,
         @Schema(description = "변경된 주문 상태", example = "PREPARING_SHIPMENT") OrderStatus status,
         @Schema(description = "관리자 수동 변경 여부 (이 API 사용 시 항상 true)", example = "true") boolean manualOverride,
-        @Schema(description = "변경 일시", example = "2026-07-05T15:00:00") LocalDateTime updatedAt
+        @Schema(description = "변경 일시", example = "2026-07-05T15:00:00") LocalDateTime updatedAt,
+        @Schema(description = "택배사 (SHIPPED 전환 시)", example = "CJ대한통운") String courier,
+        @Schema(description = "송장번호 (SHIPPED 전환 시)", example = "123456789012") String trackingNumber,
+        @Schema(description = "메모", example = "출고 준비 완료") String memo
 ) {
 }

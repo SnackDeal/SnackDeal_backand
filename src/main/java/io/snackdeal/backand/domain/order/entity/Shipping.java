@@ -52,4 +52,12 @@ public class Shipping {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void updateTracking(String courier, String trackingNumber) {
+        this.courier = courier;
+        this.trackingNumber = trackingNumber;
+        this.status = ShippingStatus.SHIPPING;
+        this.shippedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 }

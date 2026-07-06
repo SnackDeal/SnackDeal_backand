@@ -16,12 +16,13 @@
 | 파라미터 | 타입 | 필수 | 설명 |
 | --- | --- | --- | --- |
 | `email` | string | Y | 이메일 (member.email, UNIQUE) |
-| `password` | string | Y | 비밀번호 (8자 이상, 영문 + 숫자 + 특수문자) |
+| `password` | string | N* | 비밀번호 (8자 이상, 영문 + 숫자 + 특수문자). 일반 회원가입은 필수, `is_social_login=true`면 무시(서버가 자동 생성) |
 | `name` | string | Y | 이름 (최소 2글자 ~ 최대 20글자) |
 | `phone` | string | Y | 휴대폰번호 (하이픈 없이) |
 | `birth` | string(date) | Y | 생년월일 (YYYY-MM-DD) |
 | `gender` | string | Y | 성별 (`MALE` / `FEMALE`) |
-| `verification_token` | string | Y | 이메일 인증 검증 시 발급된 토큰 (email_verification.verification_token) |
+| `verification_token` | string | N* | 이메일 인증 검증 시 발급된 토큰 (email_verification.verification_token). 일반 회원가입은 필수, `is_social_login=true`면 불필요 |
+| `is_social_login` | boolean | N | 소셜(구글) 로그인을 통한 가입이면 `true` (기본값 `false`) |
 
 ```json
 {
@@ -31,7 +32,8 @@
 	"phone" : "01011112222",
 	"birth" : "2000-01-01",
 	"gender" : "MALE",
-	"verification_token" : "evt_a1b2c3d4e5..."
+	"verification_token" : "evt_a1b2c3d4e5...",
+	"is_social_login" : false
 }
 ```
 
@@ -39,7 +41,7 @@
 
 ---
 
-**`201`** 회원가입 성공 — 가입 시 "회원가입 자동발급" 활성 쿠폰이 있으면 쿠폰함에 함께 지급
+**`201`** 회원가입 성공 — 가입 시 "회원가입 자동발급" 활성 쿠폰이 있으면 쿠폰함에 함께 지급. `is_social_login=true`인 경우에만 `access_token`/`refresh_token`이 함께 발급되어 별도 로그인 없이 세션이 시작되고, 일반 회원가입은 두 값이 `null`이며 이후 `/member/login`을 별도 호출해야 한다.
 
 ```json
 {
@@ -57,7 +59,7 @@
 }
 ```
 
-**`401`** 이메일 인증 토큰 누락/만료/불일치 ("이메일 인증이 필요합니다")
+**`401`** 이메일 인증 토큰 누락/만료/불일치 ("이메일 인증이 필요합니다") — 일반 회원가입(`is_social_login=false`)에만 해당
 
 **`400`** 유효성 검사 실패
 

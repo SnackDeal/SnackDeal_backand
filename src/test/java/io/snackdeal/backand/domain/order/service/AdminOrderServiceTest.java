@@ -126,7 +126,7 @@ class AdminOrderServiceTest {
         when(ordersRepository.findById(100L)).thenReturn(Optional.of(order));
 
         AdminOrderStatusResponse response = adminOrderService.changeStatus(
-                100L, new AdminOrderStatusRequest(OrderStatus.PREPARING_SHIPMENT, null));
+                100L, new AdminOrderStatusRequest(OrderStatus.PREPARING_SHIPMENT, null, null, null));
 
         assertEquals(OrderStatus.PREPARING_SHIPMENT, response.status());
         assertTrue(response.manualOverride());
@@ -139,7 +139,7 @@ class AdminOrderServiceTest {
         when(ordersRepository.findById(100L)).thenReturn(Optional.of(order));
 
         BusinessException e = assertThrows(BusinessException.class, () -> adminOrderService.changeStatus(
-                100L, new AdminOrderStatusRequest(OrderStatus.PENDING_PAYMENT, null)));
+                100L, new AdminOrderStatusRequest(OrderStatus.PENDING_PAYMENT, null, null, null)));
         assertEquals(ResponseCode.INVALID_ORDER_STATUS, e.getResponseCode());
     }
 
@@ -150,7 +150,7 @@ class AdminOrderServiceTest {
         when(ordersRepository.findById(100L)).thenReturn(Optional.of(order));
 
         BusinessException e = assertThrows(BusinessException.class, () -> adminOrderService.changeStatus(
-                100L, new AdminOrderStatusRequest(OrderStatus.PREPARING_SHIPMENT, null)));
+                100L, new AdminOrderStatusRequest(OrderStatus.PREPARING_SHIPMENT, null, null, null)));
         assertEquals(ResponseCode.INVALID_ORDER_STATUS_TRANSITION, e.getResponseCode());
     }
 
@@ -169,7 +169,7 @@ class AdminOrderServiceTest {
         when(userCouponRepository.findById(78L)).thenReturn(Optional.of(userCoupon));
         when(couponRepository.findById(9L)).thenReturn(Optional.of(coupon));
 
-        adminOrderService.changeStatus(100L, new AdminOrderStatusRequest(OrderStatus.CANCELLED, "관리자 취소"));
+        adminOrderService.changeStatus(100L, new AdminOrderStatusRequest(OrderStatus.CANCELLED, null, null, "관리자 취소"));
 
         assertEquals(OrderStatus.CANCELLED, order.getStatus());
         assertEquals(7, product.getStock()); // 5 + 2 복구
