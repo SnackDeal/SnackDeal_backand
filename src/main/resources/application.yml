@@ -1,4 +1,5 @@
 spring:
+  forward-headers-strategy: framework
   application:
     name: snackdeal-backand
 
