@@ -18,9 +18,14 @@ public class ProductImage {
     @Column(columnDefinition = "TEXT")
     private String attachmentUrl;
 
+    // 기본 1장 예정. 추후 이미지 api 생성시 수정 가능성
     private Integer sortOrder;
 
     private Long productId;
+
+    public void updateAttachmentUrl(String attachmentUrl) {
+        this.attachmentUrl = attachmentUrl;
+    }
 
     @Builder
     public ProductImage(String attachmentUrl, Integer sortOrder, Long productId) {
