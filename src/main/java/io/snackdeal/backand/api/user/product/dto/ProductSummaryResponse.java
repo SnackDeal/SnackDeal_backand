@@ -7,6 +7,9 @@ public record ProductSummaryResponse(
         Long id,
         String name,
         Long price,
-        ProductStatus status
+        String thumbnailUrl,
+        Long categoryId,
+        String category,
+        Boolean isSoldout
 ) {
 }
