@@ -5,11 +5,8 @@ import io.snackdeal.backand.domain.product.entity.ProductStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import jakarta.persistence.LockModeType;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
@@ -51,4 +48,22 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Product p where p.id = :id")
     Optional<Product> findByIdForUpdate(@Param("id") Long id);
+
+    // 인기순 조회를 위한 데이터 삽입
+    @Modifying
+    @Query(value = """
+        UPDATE product p
+        LEFT JOIN (
+            SELECT
+                oi.product_id,
+                SUM(oi.quantity) AS total_quantity
+            FROM order_item oi
+            JOIN orders o ON o.id = oi.order_id
+            WHERE o.deleted_at IS NULL
+              AND o.status NOT IN ('CANCELLED', 'REFUND_COMPLETED')
+            GROUP BY oi.product_id
+        ) s ON s.product_id = p.id
+        SET p.recent_sales_count = COALESCE(s.total_quantity, 0)
+        """, nativeQuery = true)
+    void updateSoldQuantity();
 }
