@@ -51,6 +51,7 @@ public enum ResponseCode {
 
     // Cart
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CA001", "장바구니 항목을 찾을 수 없습니다."),
+    CART_OUT_OF_STOCK(HttpStatus.UNPROCESSABLE_ENTITY, "CA002", "재고가 부족합니다."),
 
     // Order / Delivery
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "OR001", "주문을 찾을 수 없습니다."),
