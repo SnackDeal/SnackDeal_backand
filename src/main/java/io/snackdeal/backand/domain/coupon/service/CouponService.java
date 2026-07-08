@@ -167,6 +167,35 @@ public class CouponService {
                 .orElse(null);
     }
 
+    @Transactional
+    public void issueSigninCoupons(Long memberId) {
+        if (memberId == null) {
+            throw new BusinessException(ResponseCode.VALIDATION_FAILED);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        List<Coupon> coupons = couponRepository.findIssuableCouponsForUpdate(IssueType.SIGNIN, now);
+        for (Coupon coupon : coupons) {
+            if (userCouponRepository.existsByMemberIdAndCouponId(memberId, coupon.getId())) {
+                continue;
+            }
+
+            try {
+                coupon.increaseIssuedQuantity();
+            } catch (BusinessException e) {
+                if (e.getResponseCode() == ResponseCode.COUPON_SOLD_OUT) {
+                    continue;
+                }
+                throw e;
+            }
+
+            userCouponRepository.save(UserCoupon.builder()
+                    .memberId(memberId)
+                    .couponId(coupon.getId())
+                    .build());
+        }
+    }
+
     private Set<Long> getDownloadedCouponIds(Long memberId, List<Coupon> coupons) {
         if (memberId == null || coupons.isEmpty()) {
             return Set.of();

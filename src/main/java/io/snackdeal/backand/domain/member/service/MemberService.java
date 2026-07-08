@@ -7,6 +7,7 @@ import io.snackdeal.backand.api.user.member.dto.MemberDescription;
 import io.snackdeal.backand.api.user.member.dto.MemberStatusResponse;
 import io.snackdeal.backand.api.user.member.dto.MemberStatusUpdateRequest;
 import io.snackdeal.backand.api.user.member.dto.MemberUpdateRequest;
+import io.snackdeal.backand.domain.coupon.service.CouponService;
 import io.snackdeal.backand.domain.member.entity.Member;
 import io.snackdeal.backand.domain.member.entity.MemberRole;
 import io.snackdeal.backand.domain.member.entity.MemberStatus;
@@ -34,6 +35,7 @@ public class MemberService implements UserDetailsService {
     private final EmailVerificationService emailVerificationService;
     private final RefreshTokenService refreshTokenService;
     private final PasswordEncoder passwordEncoder;
+    private final CouponService couponService;
 
     @Transactional
     public MemberDescription join(JoinRequest request) {
@@ -70,12 +72,15 @@ public class MemberService implements UserDetailsService {
                 .role(MemberRole.USER)
                 .build();
 
+        Member saved;
         try {
-            Member saved = repository.saveAndFlush(member);
-            return MemberMapper.toDescription(saved);
+            saved = repository.saveAndFlush(member);
         } catch (DataIntegrityViolationException e) {
             throw new BusinessException(ResponseCode.DUPLICATE_EMAIL);
         }
+
+        couponService.issueSigninCoupons(saved.getId());
+        return MemberMapper.toDescription(saved);
     }
 
     @Override

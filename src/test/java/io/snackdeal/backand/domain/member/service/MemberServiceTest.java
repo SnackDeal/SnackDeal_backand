@@ -9,6 +9,7 @@ import io.snackdeal.backand.domain.member.entity.Member;
 import io.snackdeal.backand.domain.member.entity.MemberRole;
 import io.snackdeal.backand.domain.member.entity.MemberStatus;
 import io.snackdeal.backand.domain.member.repository.MemberRepository;
+import io.snackdeal.backand.domain.coupon.service.CouponService;
 import io.snackdeal.backand.global.config.code.ResponseCode;
 import io.snackdeal.backand.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
@@ -45,6 +46,8 @@ class MemberServiceTest {
     private RefreshTokenService refreshTokenService;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private CouponService couponService;
 
     private Member member(Long id, MemberStatus status) {
         Member m = Member.builder()
@@ -180,6 +183,7 @@ class MemberServiceTest {
 
         assertEquals(email, result.email());
         verify(repository).saveAndFlush(any(Member.class));
+        verify(couponService).issueSigninCoupons(1L);
     }
 
     @Test

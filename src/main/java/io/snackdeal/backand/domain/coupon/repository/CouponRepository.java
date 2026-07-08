@@ -51,4 +51,19 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
 
     List<Coupon> findByCouponBoardIdAndIssueTypeAndIsActiveTrueAndDeletedAtIsNull(Long couponBoardId,
                                                                                  IssueType issueType);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select c
+            from Coupon c
+            where c.deletedAt is null
+              and c.issueType = :issueType
+              and c.isActive = true
+              and (c.validFrom is null or c.validFrom <= :now)
+              and (c.validUntil is null or c.validUntil >= :now)
+              and (c.totalQuantity = 0 or c.issuedQuantity < c.totalQuantity)
+            order by c.createdAt desc
+            """)
+    List<Coupon> findIssuableCouponsForUpdate(@Param("issueType") IssueType issueType,
+                                              @Param("now") java.time.LocalDateTime now);
 }

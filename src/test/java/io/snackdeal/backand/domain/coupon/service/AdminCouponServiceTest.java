@@ -1,9 +1,14 @@
 package io.snackdeal.backand.domain.coupon.service;
 
+import io.snackdeal.backand.domain.coupon.repository.CouponBoardRepository;
+import io.snackdeal.backand.domain.coupon.repository.CouponRepository;
+import io.snackdeal.backand.domain.coupon.repository.UserCouponRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.fail;
@@ -11,7 +16,17 @@ import static org.junit.jupiter.api.Assertions.fail;
 @ExtendWith(MockitoExtension.class)
 class AdminCouponServiceTest {
 
-    private final AdminCouponService adminCouponService = new AdminCouponService();
+    @Mock
+    private CouponRepository couponRepository;
+
+    @Mock
+    private UserCouponRepository userCouponRepository;
+
+    @Mock
+    private CouponBoardRepository couponBoardRepository;
+
+    @InjectMocks
+    private AdminCouponService adminCouponService;
 
     @Disabled("TODO: implement")
     @Test
