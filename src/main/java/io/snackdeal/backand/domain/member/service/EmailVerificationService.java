@@ -37,18 +37,18 @@ public class EmailVerificationService {
     /*
      * 이메일 인증코드 발송.
      * 회원가입 전 단계이므로, 아래 두 가지를 먼저 막고 발송
-     *  1) 이미 가입된 이메일   → 409 CONFLICT (가입 완료된 계정에 인증코드를 또 보낼 이유가 없음)
-     *  2) 60초 이내 재요청     → 429 TOO_MANY_REQUESTS (메일 폭탄/스팸 방지, 재발송 쿨다운)
+     *  이미 가입된 이메일   → 409 CONFLICT (가입 완료된 계정에 인증코드를 또 보낼 이유가 없음)
+     *  60초 이내 재요청     → 429 TOO_MANY_REQUESTS (메일 폭탄/스팸 방지, 재발송 쿨다운)
      * 통과하면 6자리 코드를 생성해 저장하고 메일로 발송하며, 코드 유효시간(초)을 응답으로 돌려준다.
      */
     @Transactional
     public SendCodeResponse sendCode(String email) {
-        // 1) 이미 가입된 이메일이면 발송 자체를 막는다
+        // 이미 가입된 이메일이면 발송 자체를 막는다
         if (memberRepository.existsByEmail(email)) {
             throw new BusinessException(ResponseCode.DUPLICATE_EMAIL);
         }
 
-        // 2) 가장 최근 발송 이력을 확인해 60초(RESEND_COOLDOWN_SECONDS) 쿨다운이 지났는지 검사
+        // 가장 최근 발송 이력을 확인해 60초(RESEND_COOLDOWN_SECONDS) 쿨다운이 지났는지 검사
         repository.findTopByEmailOrderByIdDesc(email).ifPresent(latest -> {
             LocalDateTime resendableAt = latest.getCreatedAt().plusSeconds(RESEND_COOLDOWN_SECONDS);
             if (resendableAt.isAfter(LocalDateTime.now())) {

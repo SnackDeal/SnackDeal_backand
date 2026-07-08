@@ -78,6 +78,7 @@ public class SecurityConfig {
                         .requestMatchers("/member/**").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/product/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/shipping-policy").permitAll()
                         .requestMatchers(HttpMethod.GET, "/cs/notice/**", "/cs/qna/faq").permitAll()
                         .requestMatchers(HttpMethod.GET, "/cs/qna/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/cs/qna", "/chatbot/ask").authenticated()

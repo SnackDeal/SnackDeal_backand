@@ -64,6 +64,10 @@ custom:
     store-id: ${PORTONE_STORE_ID:}
     channel-key: ${PORTONE_CHANNEL_KEY:}
 
+  order:
+    # 결제창 진입 후 결제를 완료하지 않고 이탈한 주문(PENDING_PAYMENT)을 자동 취소 처리할 때까지의 유예 시간(분).
+    pending-expiration-minutes: ${ORDER_PENDING_EXPIRATION_MINUTES:30}
+
 management:
   endpoints:
     web:
