@@ -76,6 +76,9 @@ public enum ResponseCode {
     COUPON_ALREADY_ISSUED(HttpStatus.CONFLICT, "CO003", "이미 발급받은 쿠폰입니다."),
     COUPON_SOLD_OUT(HttpStatus.BAD_REQUEST, "CO004", "쿠폰 수량이 모두 소진되었습니다."),
     COUPON_CONDITION_NOT_MET(HttpStatus.CONFLICT, "CO005", "쿠폰 사용 조건을 충족하지 않거나 만료된 쿠폰입니다."),
+    COUPON_NOT_ACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "CO006", "비활성화된 쿠폰입니다."),
+    COUPON_NOT_OPEN(HttpStatus.UNPROCESSABLE_ENTITY, "CO007", "아직 발급 가능한 쿠폰이 아닙니다."),
+    INVALID_COUPON_POLICY(HttpStatus.BAD_REQUEST, "CO008", "쿠폰 정책이 올바르지 않습니다."),
 
     // CS (notice/faq/qna)
     NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "CS001", "공지사항을 찾을 수 없습니다."),
