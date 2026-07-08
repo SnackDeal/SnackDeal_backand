@@ -84,7 +84,7 @@ class OrderApiIntegrationTest {
         Member user = saveMember("buyer@test.com", MemberRole.USER);
         Product product = saveProduct(4500L, 10);
 
-        // 1) 주문 준비 — 상품 9,000 (기본 배송비 0) → amount 9,000
+        // 주문 준비 — 상품 9,000 (기본 배송비 0) → amount 9,000
         String prepareBody = objectMapper.writeValueAsString(Map.of(
                 "items", List.of(Map.of("productId", product.getId(), "quantity", 2)),
                 "shipping", Map.of(
@@ -102,7 +102,7 @@ class OrderApiIntegrationTest {
 
         String paymentId = json(prepareResult).get("data").get("paymentId").asString();
 
-        // 2) 결제 검증 — 포트원 V2 가 동일 금액(9,000) PAID 로 응답하도록 Mock
+        // 결제 검증 — 포트원 V2 가 동일 금액(9,000) PAID 로 응답하도록 Mock
         when(portOneClient.getPayment(any())).thenReturn(new PortOnePayment(
                 paymentId, 9000L, "PAID", "Card", "TOSSPAYMENTS", "http://receipt", LocalDateTime.now()));
 
@@ -121,13 +121,13 @@ class OrderApiIntegrationTest {
         // 재고 차감 확인 (10 - 2 = 8)
         org.junit.jupiter.api.Assertions.assertEquals(8, productRepository.findById(product.getId()).get().getStock());
 
-        // 3) 주문내역 조회
+        // 주문내역 조회
         mockMvc.perform(get("/order/list").with(as(user)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.total").value(1))
                 .andExpect(jsonPath("$.data.orders[0].mainProductName").value("허니버터 프레첼"));
 
-        // 4) 주문 상세
+        // 주문 상세
         mockMvc.perform(get("/order/{id}", orderId).with(as(user)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("PAYMENT_COMPLETED"))

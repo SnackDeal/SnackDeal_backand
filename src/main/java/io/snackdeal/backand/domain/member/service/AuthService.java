@@ -37,10 +37,10 @@ public class AuthService {
 
     /*
      * 일반 로그인.
-     * 1) 이메일로 사용자 조회 → 없으면 401(USER_NOT_FOUND)
-     * 2) 비밀번호 대조 → 틀리면 401(INVALID_PASSWORD)
-     * 3) 탈퇴 계정이면 차단 → 401(ACCOUNT_DELETED)
-     * 4) 마지막 로그인 시각 기록 후 access/refresh 토큰 발급
+     * 이메일로 사용자 조회 → 없으면 401(USER_NOT_FOUND)
+     * 비밀번호 대조 → 틀리면 401(INVALID_PASSWORD)
+     * 탈퇴 계정이면 차단 → 401(ACCOUNT_DELETED)
+     * 마지막 로그인 시각 기록 후 access/refresh 토큰 발급
      */
     @Transactional
     public TokenResponse login(LoginRequest request) {
@@ -84,11 +84,11 @@ public class AuthService {
 
     /*
      * 토큰 재발급.
-     * 1) RefreshToken 서명/만료 검증 → 실패 시 401(INVALID_REFRESH_TOKEN)
-     * 2) Redis 에 저장된 토큰과 비교
+     * RefreshToken 서명/만료 검증 → 실패 시 401(INVALID_REFRESH_TOKEN)
+     * Redis 에 저장된 토큰과 비교
      *    - 없으면(만료/로그아웃) 401(REFRESH_TOKEN_EXPIRED)
      *    - 값이 다르면(재사용/탈취 의심) 401(REFRESH_TOKEN_MISMATCH)
-     * 3) 통과하면 새 access/refresh 토큰 발급 (토큰 로테이션)
+     * 통과하면 새 access/refresh 토큰 발급 (토큰 로테이션)
      */
     public TokenResponse refresh(String refreshToken) {
         if (!jwtTokenProvider.validate(refreshToken)) {
