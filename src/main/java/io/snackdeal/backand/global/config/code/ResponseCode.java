@@ -79,6 +79,7 @@ public enum ResponseCode {
     COUPON_NOT_ACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "CO006", "비활성화된 쿠폰입니다."),
     COUPON_NOT_OPEN(HttpStatus.UNPROCESSABLE_ENTITY, "CO007", "아직 발급 가능한 쿠폰이 아닙니다."),
     INVALID_COUPON_POLICY(HttpStatus.BAD_REQUEST, "CO008", "쿠폰 정책이 올바르지 않습니다."),
+    COUPON_BOARD_HAS_COUPONS(HttpStatus.UNPROCESSABLE_ENTITY, "CO009", "소속 쿠폰이 있는 이벤트 게시판은 삭제할 수 없습니다."),
 
     // CS (notice/faq/qna)
     NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "CS001", "공지사항을 찾을 수 없습니다."),

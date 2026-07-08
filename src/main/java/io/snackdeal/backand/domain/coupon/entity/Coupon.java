@@ -80,6 +80,21 @@ public class Coupon {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void changeName(String name) {
+        this.name = name;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void extendValidUntil(LocalDateTime validUntil) {
+        this.validUntil = validUntil;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void increaseTotalQuantity(Integer totalQuantity) {
+        this.totalQuantity = normalizeTotalQuantity(totalQuantity);
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public CouponStatus deriveStatus(LocalDateTime now) {
         if (Boolean.FALSE.equals(isActive)) {
             return CouponStatus.STOPPED;

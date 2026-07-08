@@ -3,12 +3,14 @@ package io.snackdeal.backand.domain.coupon.service;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponBoardCreateRequest;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponBoardListResponse;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponBoardResponse;
+import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponBoardUpdateRequest;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponCreateRequest;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponCreateResponse;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponListResponse;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponStatusResponse;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponStatusUpdateRequest;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponSummaryResponse;
+import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponUpdateRequest;
 import io.snackdeal.backand.domain.coupon.entity.Coupon;
 import io.snackdeal.backand.domain.coupon.entity.CouponBoard;
 import io.snackdeal.backand.domain.coupon.entity.CouponStatus;
@@ -45,22 +47,22 @@ public class AdminCouponService {
     public AdminCouponListResponse findList(String keyword, IssueType issueType, CouponStatus status, int page, int size) {
         validatePageRequest(page, size);
 
+        LocalDateTime now = LocalDateTime.now();
         Page<Coupon> couponPage = couponRepository.searchAdminCoupons(
                 normalizeKeyword(keyword),
                 issueType,
+                status == null ? null : status.name(),
+                now,
                 PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"))
         );
 
-        LocalDateTime now = LocalDateTime.now();
         Map<Long, String> boardTitleMap = getBoardTitleMap(couponPage.getContent());
 
         List<AdminCouponSummaryResponse> coupons = couponPage.getContent().stream()
-                .filter(coupon -> status == null || coupon.deriveStatus(now) == status)
                 .map(coupon -> toSummaryResponse(coupon, boardTitleMap.get(coupon.getCouponBoardId()), now))
                 .toList();
 
-        long total = (status == null) ? couponPage.getTotalElements() : coupons.size();
-        return new AdminCouponListResponse(coupons, page, size, total);
+        return new AdminCouponListResponse(coupons, page, size, couponPage.getTotalElements());
     }
 
     @Transactional
@@ -96,8 +98,26 @@ public class AdminCouponService {
         );
     }
 
-    public Object update(Long id, Object request) {
-        throw new BusinessException(ResponseCode.NOT_IMPLEMENTED);
+    @Transactional
+    public AdminCouponSummaryResponse update(Long id, AdminCouponUpdateRequest request) {
+        Coupon coupon = findCoupon(id);
+        validateCouponUpdateRequest(request);
+
+        if (request.name() != null) {
+            coupon.changeName(request.name().trim());
+        }
+        if (request.validUntil() != null) {
+            validateValidUntilExtension(coupon, request.validUntil());
+            coupon.extendValidUntil(request.validUntil());
+        }
+        if (request.totalQuantity() != null) {
+            validateTotalQuantityIncrease(coupon, request.totalQuantity());
+            coupon.increaseTotalQuantity(request.totalQuantity());
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        String boardTitle = getBoardTitleMap(List.of(coupon)).get(coupon.getCouponBoardId());
+        return toSummaryResponse(coupon, boardTitle, now);
     }
 
     @Transactional
@@ -139,12 +159,30 @@ public class AdminCouponService {
         return toBoardResponse(couponBoardRepository.save(board));
     }
 
-    public Object updateBoard(Long id, Object request) {
-        throw new BusinessException(ResponseCode.NOT_IMPLEMENTED);
+    @Transactional
+    public AdminCouponBoardResponse updateBoard(Long id, AdminCouponBoardUpdateRequest request) {
+        CouponBoard board = findBoard(id);
+        validatePeriod(request.startAt(), request.endAt());
+
+        board.update(
+                request.title(),
+                request.content(),
+                request.thumbnailUrl(),
+                request.isActive(),
+                request.startAt(),
+                request.endAt()
+        );
+
+        return toBoardResponse(board);
     }
 
+    @Transactional
     public void deleteBoard(Long id) {
-        throw new BusinessException(ResponseCode.NOT_IMPLEMENTED);
+        CouponBoard board = findBoard(id);
+        if (couponRepository.existsByCouponBoardIdAndDeletedAtIsNull(board.getId())) {
+            throw new BusinessException(ResponseCode.COUPON_BOARD_HAS_COUPONS);
+        }
+        board.delete();
     }
 
     private void validateCouponPolicy(AdminCouponCreateRequest request) {
@@ -154,6 +192,9 @@ public class AdminCouponService {
         }
         if (request.discountType() == DiscountType.FIXED && request.discountValue() <= 0) {
             throw new BusinessException(ResponseCode.INVALID_COUPON_POLICY, "정액 할인값은 양수여야 합니다.");
+        }
+        if (request.totalQuantity() != null && request.totalQuantity() < 0) {
+            throw new BusinessException(ResponseCode.INVALID_COUPON_POLICY, "발급 수량은 음수일 수 없습니다.");
         }
         validatePeriod(request.validFrom(), request.validUntil());
         if (request.issueType() == IssueType.EVENT && request.couponBoardId() == null) {
@@ -170,6 +211,40 @@ public class AdminCouponService {
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1) {
             throw new BusinessException(ResponseCode.VALIDATION_FAILED, "page와 size는 1 이상이어야 합니다.");
+        }
+    }
+
+    private void validateCouponUpdateRequest(AdminCouponUpdateRequest request) {
+        if (request.name() == null && request.validUntil() == null && request.totalQuantity() == null) {
+            throw new BusinessException(ResponseCode.VALIDATION_FAILED, "변경할 쿠폰 정보가 없습니다.");
+        }
+        if (request.name() != null && request.name().isBlank()) {
+            throw new BusinessException(ResponseCode.VALIDATION_FAILED, "쿠폰명은 공백일 수 없습니다.");
+        }
+    }
+
+    private void validateValidUntilExtension(Coupon coupon, LocalDateTime requestedValidUntil) {
+        if (coupon.getValidUntil() == null || requestedValidUntil.isBefore(coupon.getValidUntil())) {
+            throw new BusinessException(ResponseCode.VALIDATION_FAILED, "유효기간 종료일은 단축할 수 없습니다.");
+        }
+    }
+
+    private void validateTotalQuantityIncrease(Coupon coupon, Integer requestedTotalQuantity) {
+        if (requestedTotalQuantity < 0) {
+            throw new BusinessException(ResponseCode.VALIDATION_FAILED, "발급 수량은 음수일 수 없습니다.");
+        }
+
+        int currentTotalQuantity = coupon.getTotalQuantity() == null ? 0 : coupon.getTotalQuantity();
+        int issuedQuantity = coupon.getIssuedQuantity() == null ? 0 : coupon.getIssuedQuantity();
+
+        if (requestedTotalQuantity > 0 && requestedTotalQuantity < issuedQuantity) {
+            throw new BusinessException(ResponseCode.VALIDATION_FAILED, "발급 수량은 이미 발급된 수량보다 작을 수 없습니다.");
+        }
+        if (currentTotalQuantity == 0 && requestedTotalQuantity > 0) {
+            throw new BusinessException(ResponseCode.VALIDATION_FAILED, "무제한 쿠폰은 제한 수량으로 변경할 수 없습니다.");
+        }
+        if (currentTotalQuantity > 0 && requestedTotalQuantity > 0 && requestedTotalQuantity < currentTotalQuantity) {
+            throw new BusinessException(ResponseCode.VALIDATION_FAILED, "발급 수량은 감소시킬 수 없습니다.");
         }
     }
 

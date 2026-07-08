@@ -3,11 +3,14 @@ package io.snackdeal.backand.api.admin.coupon.controller;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponBoardCreateRequest;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponBoardListResponse;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponBoardResponse;
+import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponBoardUpdateRequest;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponCreateRequest;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponCreateResponse;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponListResponse;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponStatusResponse;
 import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponStatusUpdateRequest;
+import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponSummaryResponse;
+import io.snackdeal.backand.api.admin.coupon.dto.AdminCouponUpdateRequest;
 import io.snackdeal.backand.domain.coupon.entity.CouponStatus;
 import io.snackdeal.backand.domain.coupon.entity.IssueType;
 import io.snackdeal.backand.domain.coupon.service.AdminCouponService;
@@ -41,7 +44,10 @@ public class AdminCouponController {
     }
 
     @PutMapping("/admin/coupon/{id}")
-    public CommonResponse<Object> update(@PathVariable Long id, @RequestBody Object request) {
+    public CommonResponse<AdminCouponSummaryResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody AdminCouponUpdateRequest request
+    ) {
         return CommonResponse.success(adminCouponService.update(id, request));
     }
 
@@ -67,7 +73,10 @@ public class AdminCouponController {
     }
 
     @PutMapping("/admin/coupon-board/{id}")
-    public CommonResponse<Object> updateBoard(@PathVariable Long id, @RequestBody Object request) {
+    public CommonResponse<AdminCouponBoardResponse> updateBoard(
+            @PathVariable Long id,
+            @Valid @RequestBody AdminCouponBoardUpdateRequest request
+    ) {
         return CommonResponse.success(adminCouponService.updateBoard(id, request));
     }
 

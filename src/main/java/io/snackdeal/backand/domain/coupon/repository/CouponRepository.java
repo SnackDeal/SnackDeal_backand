@@ -32,12 +32,22 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
             where c.deletedAt is null
               and (:keyword is null or lower(c.name) like lower(concat('%', :keyword, '%')))
               and (:issueType is null or c.issueType = :issueType)
+              and (
+                  :statusName is null
+                  or (:statusName = 'STOPPED' and c.isActive = false)
+                  or (:statusName = 'EXPIRED' and c.isActive = true and c.validUntil is not null and c.validUntil < :now)
+                  or (:statusName = 'ACTIVE' and c.isActive = true and (c.validUntil is null or c.validUntil >= :now))
+              )
             """)
     Page<Coupon> searchAdminCoupons(@Param("keyword") String keyword,
                                     @Param("issueType") IssueType issueType,
+                                    @Param("statusName") String statusName,
+                                    @Param("now") java.time.LocalDateTime now,
                                     Pageable pageable);
 
     List<Coupon> findByCouponBoardIdAndDeletedAtIsNull(Long couponBoardId);
+
+    boolean existsByCouponBoardIdAndDeletedAtIsNull(Long couponBoardId);
 
     List<Coupon> findByCouponBoardIdAndIssueTypeAndIsActiveTrueAndDeletedAtIsNull(Long couponBoardId,
                                                                                  IssueType issueType);
