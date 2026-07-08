@@ -1,11 +1,15 @@
 package io.snackdeal.backand.api.user.cs.controller;
 
+import io.snackdeal.backand.api.user.cs.dto.FaqResponse;
+import io.snackdeal.backand.domain.cs.entity.QnaType;
 import io.snackdeal.backand.domain.cs.service.CsService;
 import io.snackdeal.backand.global.config.dto.CommonResponse;
 import io.snackdeal.backand.api.user.member.dto.MemberDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,8 +28,8 @@ public class CsController {
     }
 
     @GetMapping("/cs/qna/faq")
-    public CommonResponse<Object> faqList() {
-        return CommonResponse.success(csService.findFaqList());
+    public CommonResponse<List<FaqResponse>> faqList(@RequestParam(required = false) QnaType type) {
+        return CommonResponse.success(csService.findFaqList(type));
     }
 
     @GetMapping("/cs/qna/list")
