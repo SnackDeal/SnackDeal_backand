@@ -89,7 +89,9 @@ public class SecurityConfig {
                         .requestMatchers("/order/**").authenticated()
                         .requestMatchers("/delivery/**").authenticated()
                         .requestMatchers("/mypage/**").authenticated()
-                        .requestMatchers("/event/coupon/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/event/coupon/list").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/event/coupon-board/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/event/coupon/**").authenticated()
 
                         .requestMatchers(HttpMethod.POST, "/admin/login", "/admin/logout").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")

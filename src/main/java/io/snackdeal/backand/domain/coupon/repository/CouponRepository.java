@@ -38,4 +38,7 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
                                     Pageable pageable);
 
     List<Coupon> findByCouponBoardIdAndDeletedAtIsNull(Long couponBoardId);
+
+    List<Coupon> findByCouponBoardIdAndIssueTypeAndIsActiveTrueAndDeletedAtIsNull(Long couponBoardId,
+                                                                                 IssueType issueType);
 }
