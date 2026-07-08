@@ -8,8 +8,10 @@ import io.snackdeal.backand.api.user.coupon.dto.EventCouponDetailResponse;
 import io.snackdeal.backand.api.user.coupon.dto.EventCouponResponse;
 import io.snackdeal.backand.api.user.coupon.dto.MyCouponListResponse;
 import io.snackdeal.backand.api.user.coupon.dto.MyCouponResponse;
+import io.snackdeal.backand.domain.coupon.dto.CouponDiscountResult;
 import io.snackdeal.backand.domain.coupon.entity.Coupon;
 import io.snackdeal.backand.domain.coupon.entity.CouponBoard;
+import io.snackdeal.backand.domain.coupon.entity.DiscountType;
 import io.snackdeal.backand.domain.coupon.entity.IssueType;
 import io.snackdeal.backand.domain.coupon.entity.UserCoupon;
 import io.snackdeal.backand.domain.coupon.entity.UserCouponStatus;
@@ -123,6 +125,46 @@ public class CouponService {
                 .toList();
 
         return new MyCouponListResponse(coupons);
+    }
+
+    public CouponDiscountResult calculateDiscountForOrder(Long memberId, Long userCouponId, Long orderAmount) {
+        validateOrderAmount(orderAmount);
+        if (userCouponId == null) {
+            return CouponDiscountResult.none(orderAmount);
+        }
+
+        validateMemberIdForCoupon(memberId);
+        UserCoupon userCoupon = userCouponRepository.findByIdAndMemberId(userCouponId, memberId)
+                .orElseThrow(() -> new BusinessException(ResponseCode.COUPON_CONDITION_NOT_MET));
+
+        return validateAndCalculateForOrder(userCoupon, orderAmount, LocalDateTime.now());
+    }
+
+    @Transactional
+    public CouponDiscountResult useCouponForOrder(Long memberId, Long userCouponId, Long orderAmount) {
+        validateOrderAmount(orderAmount);
+        if (userCouponId == null) {
+            return CouponDiscountResult.none(orderAmount);
+        }
+
+        validateMemberIdForCoupon(memberId);
+        UserCoupon userCoupon = userCouponRepository.findByIdAndMemberIdForUpdate(userCouponId, memberId)
+                .orElseThrow(() -> new BusinessException(ResponseCode.COUPON_CONDITION_NOT_MET));
+
+        CouponDiscountResult result = validateAndCalculateForOrder(userCoupon, orderAmount, LocalDateTime.now());
+        userCoupon.use();
+        return result;
+    }
+
+    public String resolveCouponName(Long userCouponId) {
+        if (userCouponId == null) {
+            return null;
+        }
+
+        return userCouponRepository.findById(userCouponId)
+                .flatMap(userCoupon -> couponRepository.findByIdAndDeletedAtIsNull(userCoupon.getCouponId()))
+                .map(Coupon::getName)
+                .orElse(null);
     }
 
     private Set<Long> getDownloadedCouponIds(Long memberId, List<Coupon> coupons) {
@@ -244,5 +286,77 @@ public class CouponService {
             return UserCouponStatus.EXPIRED;
         }
         return UserCouponStatus.ACTIVE;
+    }
+
+    private CouponDiscountResult validateAndCalculateForOrder(UserCoupon userCoupon,
+                                                              Long orderAmount,
+                                                              LocalDateTime now) {
+        if (userCoupon.getStatus() != UserCouponStatus.ACTIVE) {
+            throw new BusinessException(ResponseCode.COUPON_CONDITION_NOT_MET);
+        }
+
+        Coupon coupon = findCoupon(userCoupon.getCouponId());
+        if (coupon.getValidFrom() != null && now.isBefore(coupon.getValidFrom())) {
+            throw new BusinessException(ResponseCode.COUPON_CONDITION_NOT_MET);
+        }
+        if (coupon.getValidUntil() != null && now.isAfter(coupon.getValidUntil())) {
+            throw new BusinessException(ResponseCode.COUPON_CONDITION_NOT_MET);
+        }
+
+        long minOrderPrice = coupon.getMinOrderPrice() == null ? 0L : coupon.getMinOrderPrice();
+        if (orderAmount < minOrderPrice) {
+            throw new BusinessException(ResponseCode.COUPON_CONDITION_NOT_MET);
+        }
+
+        long discountAmount = calculateDiscountAmount(coupon, orderAmount);
+        return new CouponDiscountResult(
+                userCoupon.getId(),
+                coupon.getId(),
+                coupon.getName(),
+                discountAmount,
+                orderAmount - discountAmount
+        );
+    }
+
+    private Coupon findCoupon(Long couponId) {
+        return couponRepository.findByIdAndDeletedAtIsNull(couponId)
+                .orElseThrow(() -> new BusinessException(ResponseCode.COUPON_NOT_FOUND));
+    }
+
+    private long calculateDiscountAmount(Coupon coupon, Long orderAmount) {
+        DiscountType discountType = coupon.getDiscountType();
+        Long discountValue = coupon.getDiscountValue();
+        if (discountType == null || discountValue == null) {
+            throw new BusinessException(ResponseCode.INVALID_COUPON_POLICY);
+        }
+
+        long discountAmount;
+        if (discountType == DiscountType.FIXED) {
+            if (discountValue <= 0) {
+                throw new BusinessException(ResponseCode.INVALID_COUPON_POLICY);
+            }
+            discountAmount = discountValue;
+        } else if (discountType == DiscountType.PERCENT) {
+            if (discountValue < 1 || discountValue > 100) {
+                throw new BusinessException(ResponseCode.INVALID_COUPON_POLICY);
+            }
+            discountAmount = orderAmount * discountValue / 100;
+        } else {
+            throw new BusinessException(ResponseCode.INVALID_COUPON_POLICY);
+        }
+
+        return Math.min(discountAmount, orderAmount);
+    }
+
+    private void validateOrderAmount(Long orderAmount) {
+        if (orderAmount == null || orderAmount < 0) {
+            throw new BusinessException(ResponseCode.VALIDATION_FAILED);
+        }
+    }
+
+    private void validateMemberIdForCoupon(Long memberId) {
+        if (memberId == null) {
+            throw new BusinessException(ResponseCode.VALIDATION_FAILED);
+        }
     }
 }
