@@ -115,7 +115,10 @@ public class ProductService {
             case "latest" -> Sort.by(Sort.Direction.DESC, "createdAt");
             case "price_asc" -> Sort.by(Sort.Direction.ASC, "price");
             case "price_desc" -> Sort.by(Sort.Direction.DESC, "price");
-            case "popular" -> throw new BusinessException(ResponseCode.NOT_IMPLEMENTED); // order에서 받아오기?
+            case "popular" -> Sort.by(
+                    Sort.Order.desc("recentSalesCount"),
+                    Sort.Order.desc("createdAt")
+            );
             default -> throw new BusinessException(ResponseCode.INVALID_PRODUCT_SORT);
         };
     }

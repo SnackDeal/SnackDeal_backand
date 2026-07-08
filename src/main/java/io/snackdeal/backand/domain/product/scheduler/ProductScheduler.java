@@ -14,7 +14,7 @@ public class ProductScheduler {
 
     // product테이블에 총 판매수 기입하기 위한 스케줄러(새벽 3시)
     @Scheduled(cron = "0 0 3 * * *")
-    //@Scheduled(cron = "0 0/1 * * * *")
+    //@Scheduled(cron = "0 0/1 * * * *") // 테스트용
     @Transactional
     public void updateProductSoldQuantity() {
         productRepository.updateSoldQuantity();

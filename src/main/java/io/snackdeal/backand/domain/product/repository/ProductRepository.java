@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -60,7 +59,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             FROM order_item oi
             JOIN orders o ON o.id = oi.order_id
             WHERE o.deleted_at IS NULL
-              AND o.status NOT IN ('CANCELLED', 'REFUND_COMPLETED')
+              AND o.status NOT IN ('CANCELLED', 'REFUND_COMPLETED', 'PENDING_PAYMENT')
             GROUP BY oi.product_id
         ) s ON s.product_id = p.id
         SET p.recent_sales_count = COALESCE(s.total_quantity, 0)
