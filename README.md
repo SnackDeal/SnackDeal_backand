@@ -90,12 +90,6 @@ docker run -d --name prometheus --network snackdeal-network -p 9090:9090 -v $(pw
 # 8 Grafana 실행 (시각화 대시보드 / 포트 3000)
 docker run -d --name grafana --network snackdeal-network -p 3000:3000 -e GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD} -v grafana_data:/var/lib/grafana --restart unless-stopped grafana/grafana:latest
 
-# 9 Loki 실행 (로그 수집)
-docker run -d --name loki --network snackdeal-network -v loki_data:/loki --restart unless-stopped grafana/loki:latest
-
-# 10 Promtail 실행 (로그 포워더)
-docker run -d --name promtail --network snackdeal-network -v /var/lib/docker/containers:/var/lib/docker/containers:ro -v /var/run/docker.sock:/var/run/docker.sock -v $(pwd)/promtail-config.yml:/etc/promtail/config.yml --restart unless-stopped grafana/promtail:latest -config.file=/etc/promtail/config.yml
-
 ```
 
 ### 3 로컬 운영 인프라 컨테이너 리스트
@@ -110,8 +104,6 @@ docker run -d --name promtail --network snackdeal-network -v /var/lib/docker/con
 | `redis-exporter` | 내부 전용 | Redis 상태 메트릭 수집기 |
 | `prometheus` | `9090` | 메트릭 시계열 데이터베이스 수집 및 저장 |
 | `grafana` | `3000` | 모니터링 시스템 시각화 대시보드 |
-| `loki` | 내부 전용 | 컨테이너 로그 중앙 집중 관리 시스템 |
-| `promtail` | 내부 전용 | 도커 로그를 수집하여 Loki로 전송하는 에이전트 |
 
 ---
 

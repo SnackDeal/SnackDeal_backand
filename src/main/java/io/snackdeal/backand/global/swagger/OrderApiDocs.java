@@ -95,4 +95,19 @@ public interface OrderApiDocs {
     })
     @interface Refund {
     }
+
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(summary = "결제 대기 주문 즉시취소",
+            description = "결제창에서 취소/실패를 확인한 직후 프론트가 바로 호출하는 즉시취소 API\n\n"
+                    + "`PENDING_PAYMENT` 상태에서만 가능하며, 재고/쿠폰은 prepare 에서 손대지 않으므로 되돌릴 것이 없다.\n"
+                    + "호출 없이 방치된 주문은 스케줄러가 유예시간 후 동일하게 취소 처리.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "취소 성공 (status=CANCELLED)"),
+            @ApiResponse(responseCode = "403", description = "타인의 주문(OR009)"),
+            @ApiResponse(responseCode = "404", description = "주문 없음(OR001)"),
+            @ApiResponse(responseCode = "400", description = "취소 불가 상태(OR002) — 이미 결제완료 등으로 진행된 주문")
+    })
+    @interface Cancel {
+    }
 }

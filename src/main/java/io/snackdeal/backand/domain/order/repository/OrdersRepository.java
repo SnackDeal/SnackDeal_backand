@@ -30,6 +30,9 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
     // 회원 누적 주문 수 (관리자 상세의 buyer.total_order_count).
     long countByMemberId(Long memberId);
 
+    // 결제창 진입 후 유예시간이 지나도록 결제완료되지 않은 주문(자동취소 스케줄러 대상). 관리자가 수동 변경한 건은 제외.
+    List<Orders> findByStatusAndManualOverrideFalseAndOrderedAtBefore(OrderStatus status, LocalDateTime cutoff);
+
     /*
      * 관리자 주문 리스트 검색.
      * keyword: 주문번호 부분검색 또는 buyer(memberId) 매칭 buyer 검색은 서비스에서 회원 id 목록으로 풀어 넘긴다.

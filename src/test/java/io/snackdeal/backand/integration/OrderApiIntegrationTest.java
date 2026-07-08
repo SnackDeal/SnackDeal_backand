@@ -201,6 +201,55 @@ class OrderApiIntegrationTest {
     }
 
     @Test
+    @DisplayName("결제 대기 주문 즉시취소: prepare 후 결제 없이 취소하면 CANCELLED")
+    void cancelPendingOrder() throws Exception {
+        Member user = saveMember("canceler@test.com", MemberRole.USER);
+        Product product = saveProduct(4500L, 10);
+
+        String prepareBody = objectMapper.writeValueAsString(Map.of(
+                "items", List.of(Map.of("productId", product.getId(), "quantity", 1)),
+                "shipping", Map.of("receiverName", "홍길동", "receiverPhone", "01012345678",
+                        "zipcode", "06133", "address", "서울")));
+        mockMvc.perform(post("/order/prepare").with(as(user))
+                        .contentType(MediaType.APPLICATION_JSON).content(prepareBody))
+                .andExpect(status().isOk());
+        long orderId = orderIdOf(user);
+
+        mockMvc.perform(post("/order/{id}/cancel", orderId).with(as(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("CANCELLED"));
+
+        // 재고는 prepare 단계에서 손대지 않았으므로 그대로
+        org.junit.jupiter.api.Assertions.assertEquals(10, productRepository.findById(product.getId()).get().getStock());
+
+        // 이미 취소된 주문을 다시 취소하면 400
+        mockMvc.perform(post("/order/{id}/cancel", orderId).with(as(user)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("OR002"));
+    }
+
+    @Test
+    @DisplayName("타인의 결제대기 주문은 취소할 수 없다 (403)")
+    void cancelOthersOrderForbidden() throws Exception {
+        Member owner = saveMember("cancelowner@test.com", MemberRole.USER);
+        Member other = saveMember("cancelother@test.com", MemberRole.USER);
+        Product product = saveProduct(4500L, 10);
+
+        String prepareBody = objectMapper.writeValueAsString(Map.of(
+                "items", List.of(Map.of("productId", product.getId(), "quantity", 1)),
+                "shipping", Map.of("receiverName", "홍길동", "receiverPhone", "01012345678",
+                        "zipcode", "06133", "address", "서울")));
+        mockMvc.perform(post("/order/prepare").with(as(owner))
+                        .contentType(MediaType.APPLICATION_JSON).content(prepareBody))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        long orderId = orderIdOf(owner);
+
+        mockMvc.perform(post("/order/{id}/cancel", orderId).with(as(other)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("OR009"));
+    }
+
+    @Test
     @DisplayName("관리자 주문관리: 리스트 → 상세 → 상태변경(배송준비중)")
     void adminOrderManagement() throws Exception {
         Member user = saveMember("cust@test.com", MemberRole.USER);
