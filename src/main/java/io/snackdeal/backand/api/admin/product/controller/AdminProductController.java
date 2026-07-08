@@ -7,6 +7,7 @@ import io.snackdeal.backand.domain.product.service.AdminProductService;
 import io.snackdeal.backand.global.util.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,6 +30,7 @@ public class AdminProductController {
         return CommonResponse.success(adminProductService.findList(keyword, categoryId, status, lowStock, sort, page, size));
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public CommonResponse<AdminProductDetailResponse> save(
             @Valid @RequestBody AdminProductRequest request
