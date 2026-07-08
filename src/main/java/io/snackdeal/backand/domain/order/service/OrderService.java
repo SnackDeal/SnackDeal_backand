@@ -1,5 +1,6 @@
 package io.snackdeal.backand.domain.order.service;
 
+import io.snackdeal.backand.api.user.order.dto.OrderCancelResponse;
 import io.snackdeal.backand.api.user.order.dto.OrderCompleteRequest;
 import io.snackdeal.backand.api.user.order.dto.OrderCompleteResponse;
 import io.snackdeal.backand.api.user.order.dto.OrderItemRequest;
@@ -299,6 +300,30 @@ public class OrderService {
 
         order.requestRefund();
         return new RefundResponse(order.getId(), order.getOrderNumber(), order.getStatus());
+    }
+
+    /*
+     * 결제 대기(PENDING_PAYMENT) 주문 즉시취소.
+     * 포트원 결제창에서 사용자가 취소/실패를 확인한 직후 프론트가 호출 재고/쿠폰은 prepare 에서 손대지 않았으므로 되돌릴 것이 없다.
+     * 이미 결제완료 등으로 넘어간 주문은 취소 불가(422) → 그 경우는 환불 요청(refund)을 이용해야 한다.
+     * (미호출로 방치된 주문은 OrderScheduler 가 유예시간 후 동일하게 CANCELLED 처리)
+     */
+    @Transactional
+    public OrderCancelResponse cancel(String email, Long orderId) {
+        Member member = findMember(email);
+        Orders order = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(ResponseCode.ORDER_NOT_FOUND));
+        if (!order.getMemberId().equals(member.getId())) {
+            throw new BusinessException(ResponseCode.ORDER_ACCESS_DENIED);
+        }
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            throw new BusinessException(ResponseCode.ORDER_CANCEL_NOT_ALLOWED);
+        }
+
+        order.changeStatus(OrderStatus.CANCELLED);
+        paymentRepository.findByOrderId(order.getId()).ifPresent(Payment::markCancelled);
+
+        return new OrderCancelResponse(order.getId(), order.getOrderNumber(), order.getStatus());
     }
 
     // ── 내부 헬퍼 ─────────────────────────────────────────────

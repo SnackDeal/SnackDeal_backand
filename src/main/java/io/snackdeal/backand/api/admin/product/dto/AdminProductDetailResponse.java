@@ -1,19 +1,20 @@
-package io.snackdeal.backand.api.user.product.dto;
+package io.snackdeal.backand.api.admin.product.dto;
 
 import io.snackdeal.backand.domain.product.entity.ProductStatus;
 
 import java.time.LocalDateTime;
 
-public record ProductResponse(
+public record AdminProductDetailResponse(
         Long id,
         String name,
+        Long categoryId,
+        String category,
         Long price,
         String description,
-        String imageUrl,
         Integer stock,
         ProductStatus status,
-        Boolean isSoldout,
-        Long categoryId,
-        String category
+        String imageUrl,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
 }

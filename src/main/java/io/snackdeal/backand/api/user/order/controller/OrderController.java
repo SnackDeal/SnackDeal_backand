@@ -1,6 +1,7 @@
 package io.snackdeal.backand.api.user.order.controller;
 
 import io.snackdeal.backand.api.user.member.dto.MemberDetails;
+import io.snackdeal.backand.api.user.order.dto.OrderCancelResponse;
 import io.snackdeal.backand.api.user.order.dto.OrderCompleteRequest;
 import io.snackdeal.backand.api.user.order.dto.OrderCompleteResponse;
 import io.snackdeal.backand.api.user.order.dto.OrderListResponse;
@@ -65,5 +66,12 @@ public class OrderController {
                                                  @PathVariable Long orderId,
                                                  @Valid @RequestBody RefundRequest request) {
         return CommonResponse.success(orderService.refund(details.getEmail(), orderId, request));
+    }
+
+    @OrderApiDocs.Cancel
+    @PostMapping("/{orderId}/cancel")
+    public CommonResponse<OrderCancelResponse> cancel(@AuthenticationPrincipal MemberDetails details,
+                                                      @PathVariable Long orderId) {
+        return CommonResponse.success(orderService.cancel(details.getEmail(), orderId));
     }
 }
