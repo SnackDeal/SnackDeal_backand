@@ -5,7 +5,7 @@ import io.snackdeal.backand.domain.coupon.entity.IssueType;
 
 import java.time.LocalDateTime;
 
-/** 이벤트(발급 가능) 쿠폰 응답. */
+/** 이벤트(발급 가능) 쿠폰 응답 */
 public record CouponResponse(
         Long id,
         String name,

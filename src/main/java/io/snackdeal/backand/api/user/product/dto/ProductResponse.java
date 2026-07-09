@@ -4,15 +4,16 @@ import io.snackdeal.backand.domain.product.entity.ProductStatus;
 
 import java.time.LocalDateTime;
 
-/** 상품 상세 응답. */
 public record ProductResponse(
         Long id,
         String name,
         Long price,
         String description,
-        ProductStatus status,
+        String imageUrl,
         Integer stock,
+        ProductStatus status,
+        Boolean isSoldout,
         Long categoryId,
-        LocalDateTime createdAt
+        String category
 ) {
 }

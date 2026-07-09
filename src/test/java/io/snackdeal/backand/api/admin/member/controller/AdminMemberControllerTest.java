@@ -1,54 +1,80 @@
 package io.snackdeal.backand.api.admin.member.controller;
 
+import io.snackdeal.backand.api.user.member.dto.MemberDescription;
+import io.snackdeal.backand.api.user.member.dto.MemberDetails;
+import io.snackdeal.backand.api.user.member.dto.MemberStatusResponse;
+import io.snackdeal.backand.api.user.member.dto.MemberStatusUpdateRequest;
+import io.snackdeal.backand.domain.member.entity.MemberRole;
+import io.snackdeal.backand.domain.member.entity.MemberStatus;
 import io.snackdeal.backand.domain.member.service.MemberService;
-import tools.jackson.databind.ObjectMapper;
+import io.snackdeal.backand.global.config.dto.CommonResponse;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import java.time.LocalDateTime;
+import java.util.List;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:test-config.properties")
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 class AdminMemberControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @InjectMocks
+    private AdminMemberController adminMemberController;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockitoBean
+    @Mock
     private MemberService memberService;
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("findAll - TODO")
-    void findAll_Success() throws Exception {
-        fail("not implemented");
+    @DisplayName("findAll - keyword/status 필터를 서비스에 전달하고 페이지를 반환")
+    void findAll() {
+        Page<MemberDescription> page = new PageImpl<>(List.of());
+        when(memberService.search(eq("hong"), eq(MemberStatus.ACTIVE), any())).thenReturn(page);
+
+        CommonResponse<Page<MemberDescription>> response =
+                adminMemberController.findAll("hong", MemberStatus.ACTIVE, 0, 10);
+
+        assertSame(page, response.getData());
+        verify(memberService).search(eq("hong"), eq(MemberStatus.ACTIVE), any());
     }
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("findById - TODO")
-    void findById_Success() throws Exception {
-        fail("not implemented");
+    @DisplayName("findById - 회원 상세를 조회")
+    void findById() {
+        MemberDescription expected = new MemberDescription(45L, "hong@test.com", "홍길동",
+                "01011112222", null, null, MemberStatus.ACTIVE, MemberRole.USER, null, null);
+        when(memberService.findById(45L)).thenReturn(expected);
+
+        CommonResponse<MemberDescription> response = adminMemberController.findById(45L);
+
+        assertSame(expected, response.getData());
     }
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("changeStatus - TODO")
-    void changeStatus_Success() throws Exception {
-        fail("not implemented");
-    }
+    @DisplayName("changeStatus - 인증된 관리자 id를 함께 넘겨 상태 변경을 위임")
+    void changeStatus() {
+        MemberDetails admin = new MemberDetails(99L, "admin@test.com", "ENCODED", MemberRole.ADMIN);
+        MemberStatusUpdateRequest request = new MemberStatusUpdateRequest(MemberStatus.INACTIVE, "6개월 미접속");
+        MemberStatusResponse expected =
+                new MemberStatusResponse(45L, "hong@test.com", MemberStatus.INACTIVE, LocalDateTime.now());
+        when(memberService.changeStatus(45L, request, 99L)).thenReturn(expected);
 
+        CommonResponse<MemberStatusResponse> response =
+                adminMemberController.changeStatus(admin, 45L, request);
+
+        assertSame(expected, response.getData());
+        assertEquals(MemberStatus.INACTIVE, response.getData().status());
+        verify(memberService).changeStatus(45L, request, 99L);
+    }
 }

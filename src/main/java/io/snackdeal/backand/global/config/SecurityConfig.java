@@ -7,6 +7,7 @@ import io.snackdeal.backand.domain.member.service.GoogleOAuth2MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,6 +18,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -26,6 +33,21 @@ public class SecurityConfig {
     private final GoogleOAuth2MemberService googleOAuth2MemberService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final AuthenticationEntryPointImpl authenticationEntryPoint;
+
+    @Value("${custom.cors.allowed-origins}")
+    private String allowedOrigins;
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(
@@ -37,13 +59,13 @@ public class SecurityConfig {
         HttpSecurity security = http
                 .httpBasic(basic -> basic.disable())
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .formLogin(f -> f
                         .successHandler(successHandler)
                         .failureHandler(failureHandler)
                 )
-                .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
@@ -56,6 +78,7 @@ public class SecurityConfig {
                         .requestMatchers("/member/**").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/product/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/shipping-policy").permitAll()
                         .requestMatchers(HttpMethod.GET, "/cs/notice/**", "/cs/qna/faq").permitAll()
                         .requestMatchers(HttpMethod.GET, "/cs/qna/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/cs/qna", "/chatbot/ask").authenticated()
@@ -66,9 +89,11 @@ public class SecurityConfig {
                         .requestMatchers("/order/**").authenticated()
                         .requestMatchers("/delivery/**").authenticated()
                         .requestMatchers("/mypage/**").authenticated()
-                        .requestMatchers("/event/coupon/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/event/coupon/list").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/event/coupon-board/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/event/coupon/**").authenticated()
 
-                        .requestMatchers(HttpMethod.POST, "/admin/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/admin/login", "/admin/logout").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
                         .anyRequest().permitAll()

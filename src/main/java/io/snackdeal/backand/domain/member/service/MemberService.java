@@ -4,12 +4,16 @@ import io.snackdeal.backand.global.config.code.ResponseCode;
 import io.snackdeal.backand.global.exception.BusinessException;
 import io.snackdeal.backand.api.user.member.dto.JoinRequest;
 import io.snackdeal.backand.api.user.member.dto.MemberDescription;
+import io.snackdeal.backand.api.user.member.dto.MemberStatusResponse;
 import io.snackdeal.backand.api.user.member.dto.MemberStatusUpdateRequest;
 import io.snackdeal.backand.api.user.member.dto.MemberUpdateRequest;
+import io.snackdeal.backand.domain.coupon.service.CouponService;
 import io.snackdeal.backand.domain.member.entity.Member;
 import io.snackdeal.backand.domain.member.entity.MemberRole;
+import io.snackdeal.backand.domain.member.entity.MemberStatus;
 import io.snackdeal.backand.domain.member.mapper.MemberMapper;
 import io.snackdeal.backand.domain.member.repository.MemberRepository;
+import io.snackdeal.backand.global.util.PhoneUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -21,41 +25,62 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID; // UUID import 추가
+
 @Service
 @RequiredArgsConstructor
 public class MemberService implements UserDetailsService {
 
     private final MemberRepository repository;
     private final EmailVerificationService emailVerificationService;
+    private final RefreshTokenService refreshTokenService;
     private final PasswordEncoder passwordEncoder;
+    private final CouponService couponService;
 
     @Transactional
     public MemberDescription join(JoinRequest request) {
-        String verifiedEmail = emailVerificationService.getVerifiedEmail(request.verificationToken());
-        if (!verifiedEmail.equals(request.email())) {
-            throw new BusinessException(ResponseCode.EMAIL_TOKEN_INVALID);
+        if (!request.socialLogin()) {
+            String verifiedEmail = emailVerificationService.getVerifiedEmail(request.verificationToken());
+            if (!verifiedEmail.equals(request.email())) {
+                throw new BusinessException(ResponseCode.EMAIL_TOKEN_INVALID);
+            }
         }
 
         if (repository.findByEmail(request.email()).isPresent()) {
             throw new BusinessException(ResponseCode.DUPLICATE_EMAIL);
         }
 
+        String rawPassword;
+        if (request.socialLogin()) {
+            // 소셜 로그인 사용자의 경우, 임의의 강력한 비밀번호를 생성하여 저장
+            rawPassword = UUID.randomUUID().toString();
+        } else {
+            if (request.password() == null || request.password().isBlank()) {
+                throw new BusinessException(ResponseCode.PASSWORD_REQUIRED);
+            }
+            // 일반 회원가입 사용자의 경우, 요청에서 받은 비밀번호 사용
+            rawPassword = request.password();
+        }
+
         Member member = Member.builder()
                 .email(request.email())
-                .password(passwordEncoder.encode(request.password()))
+                .password(passwordEncoder.encode(rawPassword)) // 인코딩된 비밀번호 저장
                 .name(request.name())
                 .birth(request.birth())
                 .gender(request.gender())
-                .phone(request.phone())
+                .phone(PhoneUtils.format(request.phone()))
                 .role(MemberRole.USER)
                 .build();
 
+        Member saved;
         try {
-            Member saved = repository.saveAndFlush(member);
-            return MemberMapper.toDescription(saved);
+            saved = repository.saveAndFlush(member);
         } catch (DataIntegrityViolationException e) {
             throw new BusinessException(ResponseCode.DUPLICATE_EMAIL);
         }
+
+        couponService.issueSigninCoupons(saved.getId());
+        return MemberMapper.toDescription(saved);
     }
 
     @Override
@@ -74,16 +99,41 @@ public class MemberService implements UserDetailsService {
         return MemberMapper.toDescription(findByEmail(email));
     }
 
+    /*
+     * 내 정보 수정 (휴대폰 / 비밀번호).
+     * 비밀번호는 민감 정보이므로, "새 비밀번호"를 바꾸려면 반드시 "현재 비밀번호"를 함께 받아 본인 확인을 
+     *  - 비밀번호를 바꾸지 않는 경우(request.password()==null): 현재 비밀번호 검증 없이 휴대폰만 수정
+     *  - 비밀번호를 바꾸는 경우: 현재 비밀번호가 없거나 틀리면 401(INVALID_PASSWORD)
+     * @Transactional 영속 상태의 member 를 수정하므로, 별도 save 없이 변경 감지(dirty checking)로 반영됨
+     */
     @Transactional
     public MemberDescription updateProfile(String email, MemberUpdateRequest request) {
         Member member = findByEmail(email);
-        String encodedPassword = (request.password() != null) ? passwordEncoder.encode(request.password()) : null;
-        member.updateProfile(request.phone(), encodedPassword);
+
+        String encodedPassword = null;
+        if (request.password() != null) {
+            // 비밀번호 변경 시 현재 비밀번호 검증 (본인 확인)
+            if (request.currentPassword() == null
+                    || !passwordEncoder.matches(request.currentPassword(), member.getPassword())) {
+                throw new BusinessException(ResponseCode.INVALID_PASSWORD);
+            }
+            // DB 에는 평문이 아닌 암호화된 값만 저장
+            encodedPassword = passwordEncoder.encode(request.password());
+        }
+
+        // phone/password 중 null 인 항목은 엔티티 쪽에서 건너뛴다 (부분 수정)
+        member.updateProfile(PhoneUtils.format(request.phone()), encodedPassword);
         return MemberMapper.toDescription(member);
     }
 
-    public Page<MemberDescription> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(MemberMapper::toDescription);
+    /*
+     * 관리자 회원 리스트 조회 (검색 + 필터 + 페이징).
+     * keyword: 이메일/이름 부분검색, status: 상태 필터 둘 다 선택값이라 null 이면 해당 조건은 무시됨
+     * 빈 문자열("")도 "조건 없음"으로 보기 위해 null 로 정규화한 뒤 리포지토리에 넘긴다.
+     */
+    public Page<MemberDescription> search(String keyword, MemberStatus status, Pageable pageable) {
+        String normalizedKeyword = (keyword != null && !keyword.isBlank()) ? keyword : null;
+        return repository.search(normalizedKeyword, status, pageable).map(MemberMapper::toDescription);
     }
 
     public MemberDescription findById(Long id) {
@@ -92,11 +142,43 @@ public class MemberService implements UserDetailsService {
         return MemberMapper.toDescription(member);
     }
 
+    /*
+     * 관리자의 회원 상태 변경 (ACTIVE / INACTIVE / DELETED).
+     * 하드 삭제하지 않고 상태값 + deleted_at 으로 관리하여 주문/문의 이력을 보존
+     * 방어 규칙:
+     *  본인 계정은 변경 불가 → 403 (관리자가 실수로 자기 계정을 잠그는 것을 방지)
+     *  이미 탈퇴(DELETED)한 회원은 되돌릴 수 없음(터미널 상태) → 422
+     *  DELETED 로 바꾸면 RefreshToken 을 즉시 삭제해 로그인 세션을 무효화
+     *     (로그인 API 에서도 DELETED 계정은 차단 → AuthService.login 참고)
+     * @param adminId 요청한 관리자 본인 id (본인 계정 변경 차단 비교용)
+     */
     @Transactional
-    public MemberDescription changeStatus(Long id, MemberStatusUpdateRequest request) {
+    public MemberStatusResponse changeStatus(Long id, MemberStatusUpdateRequest request, Long adminId) {
         Member member = repository.findById(id)
                 .orElseThrow(() -> new BusinessException(ResponseCode.MEMBER_NOT_FOUND));
+
+        // 본인 계정 상태 변경 차단
+        if (member.getId().equals(adminId)) {
+            throw new BusinessException(ResponseCode.SELF_STATUS_CHANGE_FORBIDDEN);
+        }
+
+        // 탈퇴한 회원은 되돌릴 수 없음 (DELETED 는 최종 상태)
+        if (member.getStatus() == MemberStatus.DELETED) {
+            throw new BusinessException(ResponseCode.INVALID_MEMBER_STATUS_TRANSITION);
+        }
+
         member.changeStatus(request.status());
-        return MemberMapper.toDescription(member);
+
+        // 3) 탈퇴 처리 시 토큰(세션) 즉시 무효화
+        if (request.status() == MemberStatus.DELETED) {
+            refreshTokenService.delete(member.getEmail());
+        }
+
+        return new MemberStatusResponse(
+                member.getId(),
+                member.getEmail(),
+                member.getStatus(),
+                member.getUpdatedAt()
+        );
     }
 }

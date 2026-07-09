@@ -60,4 +60,9 @@ public class Qna {
         this.isAnswered = true;
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 }

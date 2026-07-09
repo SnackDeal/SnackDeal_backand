@@ -7,6 +7,7 @@ import io.snackdeal.backand.api.user.member.dto.MemberDetails;
 import io.snackdeal.backand.api.user.member.dto.TokenResponse;
 import io.snackdeal.backand.domain.member.entity.Member;
 import io.snackdeal.backand.domain.member.entity.MemberRole;
+import io.snackdeal.backand.domain.member.entity.MemberStatus;
 import io.snackdeal.backand.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,13 @@ public class AuthService {
     @Value("${custom.jwt.refresh-expiration}")
     private long refreshExpiration;
 
+    /*
+     * 일반 로그인.
+     * 이메일로 사용자 조회 → 없으면 401(USER_NOT_FOUND)
+     * 비밀번호 대조 → 틀리면 401(INVALID_PASSWORD)
+     * 탈퇴 계정이면 차단 → 401(ACCOUNT_DELETED)
+     * 마지막 로그인 시각 기록 후 access/refresh 토큰 발급
+     */
     @Transactional
     public TokenResponse login(LoginRequest request) {
         MemberDetails details;
@@ -48,11 +56,22 @@ public class AuthService {
         }
 
         Member member = memberRepository.findByEmail(request.email()).orElseThrow();
+
+        // 탈퇴(DELETED)한 계정은 비밀번호가 맞아도 로그인 차단 (관리자가 상태를 DELETED 로 바꾸면 재로그인 불가)
+        if (member.getStatus() == MemberStatus.DELETED) {
+            throw new BusinessException(ResponseCode.ACCOUNT_DELETED);
+        }
+
+        // 로그인 성공 시점의 마지막 로그인 시각 기록 (대시보드/회원 상세에서 활용)
         member.recordLogin();
 
         return issueTokens(details.getEmail(), details.getRole());
     }
 
+    /*
+     * 관리자 로그인.
+     * 일반 로그인 절차를 그대로 수행한 뒤, 역할이 ADMIN 이 아니면 403(FORBIDDEN_ACCESS) 로 막는다.
+     */
     @Transactional
     public TokenResponse adminLogin(LoginRequest request) {
         TokenResponse tokens = login(request);
@@ -63,6 +82,14 @@ public class AuthService {
         return tokens;
     }
 
+    /*
+     * 토큰 재발급.
+     * RefreshToken 서명/만료 검증 → 실패 시 401(INVALID_REFRESH_TOKEN)
+     * Redis 에 저장된 토큰과 비교
+     *    - 없으면(만료/로그아웃) 401(REFRESH_TOKEN_EXPIRED)
+     *    - 값이 다르면(재사용/탈취 의심) 401(REFRESH_TOKEN_MISMATCH)
+     * 통과하면 새 access/refresh 토큰 발급 (토큰 로테이션)
+     */
     public TokenResponse refresh(String refreshToken) {
         if (!jwtTokenProvider.validate(refreshToken)) {
             throw new BusinessException(ResponseCode.INVALID_REFRESH_TOKEN);
@@ -82,10 +109,15 @@ public class AuthService {
         return issueTokens(email, details.getRole());
     }
 
+    // 로그아웃: Redis 의 RefreshToken/세션을 삭제해 이후 재발급을 막는다 (AccessToken 은 짧은 만료로 자연 소멸)
     public void logout(String email) {
         refreshTokenService.delete(email);
     }
 
+    /*
+     * access/refresh 토큰을 함께 발급하고 RefreshToken 을 Redis 에 저장
+     * 매 발급마다 새 세션ID(sid)를 부여해 로그인 세션을 구분
+     */
     public TokenResponse issueTokens(String email, MemberRole role) {
         String sessionId = UUID.randomUUID().toString();
         String accessToken = jwtTokenProvider.issue(accessExpiration, Map.of("email", email, "role", role.name(), "sid", sessionId));

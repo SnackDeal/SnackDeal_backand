@@ -1,8 +1,6 @@
 package io.snackdeal.backand.domain.member.service;
 
-import io.snackdeal.backand.domain.member.entity.Gender;
 import io.snackdeal.backand.domain.member.entity.Member;
-import io.snackdeal.backand.domain.member.entity.MemberRole;
 import io.snackdeal.backand.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,22 +13,19 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Optional;
 
 /**
- * member 테이블에 provider_id 컬럼이 없어(스키마 고정) 이메일 기준으로만 매칭한다.
- * 최초 가입 시 birth/gender/phone은 스키마상 NOT NULL이라 임시값으로 채우며,
- * 프론트에서 최초 로그인 후 추가 정보 입력 화면으로 보완하는 것을 전제로 한다.
+ * member 테이블에 provider_id 컬럼이 없어(스키마 고정) 이메일 기준으로만 매칭
+ * 신규 이메일이면 여기서 회원을 만들지 않고 isNewUser=true 만 표시
+ * 실제 가입(및 birth/gender/phone 입력)은 프론트 회원가입 화면 → /member/join 에서 완료
  */
 @Service
 @RequiredArgsConstructor
 public class GoogleOAuth2MemberService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
-
-    private static final LocalDate PLACEHOLDER_BIRTH = LocalDate.of(2000, 1, 1);
 
     private final MemberRepository repository;
 
@@ -48,24 +43,18 @@ public class GoogleOAuth2MemberService implements OAuth2UserService<OAuth2UserRe
         String email = attributes.get("email").toString();
         String name = attributes.getOrDefault("name", email).toString();
 
-        Member member = repository.findByEmail(email)
-                .orElseGet(() -> repository.save(Member.builder()
-                        .email(email)
-                        .password(UUID.randomUUID().toString())
-                        .name(name)
-                        .birth(PLACEHOLDER_BIRTH)
-                        .gender(Gender.MALE)
-                        .phone("")
-                        .role(MemberRole.USER)
-                        .build()));
+        Optional<Member> member = repository.findByEmail(email);
 
-        attributes.put("email", member.getEmail());
-        attributes.put("role", member.getRole().name());
+        attributes.put("email", email);
+        attributes.put("name", name);
+        attributes.put("isNewUser", member.isEmpty());
+        attributes.put("role", member.map(m -> m.getRole().name()).orElse("USER"));
 
-        return new DefaultOAuth2User(
-                List.of(new SimpleGrantedAuthority("ROLE_" + member.getRole().name())),
-                attributes,
-                "email"
-        );
+        // DefaultOAuth2User는 authorities가 비어있으면 예외를 던지므로, 신규 유저에게는 임시로 GUEST 권한을 부여
+        List<SimpleGrantedAuthority> authorities = member.isEmpty()
+                ? List.of(new SimpleGrantedAuthority("ROLE_GUEST"))
+                : List.of(new SimpleGrantedAuthority("ROLE_" + member.get().getRole().name()));
+
+        return new DefaultOAuth2User(authorities, attributes, "email");
     }
 }

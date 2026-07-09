@@ -1,40 +1,44 @@
 package io.snackdeal.backand.api.admin.main.controller;
 
+import io.snackdeal.backand.api.user.member.dto.LoginRequest;
+import io.snackdeal.backand.api.user.member.dto.TokenResponse;
 import io.snackdeal.backand.domain.member.service.AuthService;
-import tools.jackson.databind.ObjectMapper;
+import io.snackdeal.backand.global.config.dto.CommonResponse;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:test-config.properties")
+/**
+ * 관리자 로그인 컨트롤러 단위테스트
+ */
+@ExtendWith(MockitoExtension.class)
 class AdminAuthControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @InjectMocks
+    private AdminAuthController adminAuthController;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockitoBean
+    @Mock
     private AuthService authService;
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("login - TODO")
-    void login_Success() throws Exception {
-        fail("not implemented");
-    }
+    @DisplayName("login - adminLogin 결과(토큰)를 그대로 감싸 반환")
+    void login() {
+        LoginRequest request = new LoginRequest("admin@test.com", "p@ssW0rd!");
+        TokenResponse expected = new TokenResponse("access-token", "refresh-token");
+        when(authService.adminLogin(request)).thenReturn(expected);
 
+        CommonResponse<TokenResponse> response = adminAuthController.login(request);
+
+        assertTrue(response.isSuccess());
+        assertSame(expected, response.getData());
+        verify(authService).adminLogin(request);
+    }
 }

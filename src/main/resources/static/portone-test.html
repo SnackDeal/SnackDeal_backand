@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<!--
+  포트원 V2 결제 테스트 페이지 (개발용).
+  앱과 같은 오리진(http://localhost:8080/portone-test.html)에서 열어 CORS 없이 /order/* 를 호출
+  흐름: 로그인 → /order/prepare → PortOne.requestPayment(결제창) → /order/complete(서버 검증).
+  ※ 운영 배포 전에는 이 파일을 삭제해도 됨
+-->
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>포트원 V2 결제 테스트</title>
+  <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; }
+    fieldset { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 16px; padding: 12px 16px; }
+    legend { font-weight: 600; }
+    label { display: block; margin: 8px 0 2px; font-size: 13px; color: #444; }
+    input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+    button { margin-top: 12px; padding: 10px 16px; border: 0; border-radius: 6px; background: #2d6cdf; color: #fff; font-size: 14px; cursor: pointer; }
+    button.secondary { background: #555; }
+    pre { background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow: auto; font-size: 12px; white-space: pre-wrap; }
+    .row { display: flex; gap: 12px; }
+    .row > div { flex: 1; }
+  </style>
+</head>
+<body>
+  <h1>🍪 SnackDeal 포트원 V2 결제 테스트</h1>
+
+  <fieldset>
+    <legend>1) 설정</legend>
+    <label>Base URL</label>
+    <input id="baseUrl" value="http://localhost:8080" />
+    <div class="row">
+      <div>
+        <label>Store ID (store-...) — 콘솔 결제연동에서 복사</label>
+        <input id="storeId" placeholder="store-xxxxxxxx-xxxx-..." />
+      </div>
+      <div>
+        <label>채널 키</label>
+        <input id="channelKey" value="channel-key-c49f625b-380b-403f-ac55-d27bd71c88c1" />
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>2) 로그인</legend>
+    <div class="row">
+      <div><label>이메일</label><input id="email" value="user@snackdeal.io" /></div>
+      <div><label>비밀번호</label><input id="password" type="password" value="user1234" /></div>
+    </div>
+    <button onclick="login()">로그인 → accessToken 발급</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>3) 주문 & 결제</legend>
+    <div class="row">
+      <div><label>상품 ID</label><input id="productId" value="1" /></div>
+      <div><label>수량</label><input id="quantity" value="2" /></div>
+    </div>
+    <button onclick="pay()">주문하기(prepare) → 포트원 결제창 → 확정(complete)</button>
+  </fieldset>
+
+  <h3>로그</h3>
+  <pre id="log">여기에 진행 상황이 표시됩니다…</pre>
+
+  <script>
+    let accessToken = null;
+    const $ = (id) => document.getElementById(id).value.trim();
+    const logEl = document.getElementById('log');
+    const log = (label, data) => {
+      logEl.textContent += `\n\n== ${label} ==\n` + (typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+    };
+
+    async function login() {
+      logEl.textContent = '';
+      const res = await fetch(`${$('baseUrl')}/member/login`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: $('email'), password: $('password') })
+      });
+      const json = await res.json();
+      accessToken = json?.data?.accessToken || null;
+      log('로그인 응답', json);
+      log('accessToken', accessToken ? '발급됨 ✓' : '실패 ✗');
+    }
+
+    async function pay() {
+      if (!accessToken) { alert('먼저 로그인하세요'); return; }
+      const base = $('baseUrl');
+
+      // 주문 준비 — paymentId, amount 확보
+      const prepRes = await fetch(`${base}/order/prepare`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify({
+          items: [{ productId: Number($('productId')), quantity: Number($('quantity')) }],
+          shipping: { receiverName: '홍길동', receiverPhone: '01012345678',
+                      zipcode: '06133', address: '서울 강남구 테헤란로 123', detailAddress: '456호' }
+        })
+      });
+      const prep = await prepRes.json();
+      log('prepare 응답', prep);
+      const { paymentId, amount } = prep.data || {};
+      if (!paymentId) return;
+
+      // (2) 포트원 결제창 호출 (V2 SDK)
+      const payResult = await PortOne.requestPayment({
+        storeId: $('storeId'),
+        channelKey: $('channelKey'),
+        paymentId: paymentId,
+        orderName: 'SnackDeal 테스트 주문',
+        totalAmount: amount,
+        currency: 'CURRENCY_KRW',
+        payMethod: 'CARD'
+      });
+      log('PortOne.requestPayment 결과', payResult);
+      if (payResult.code !== undefined) { // 실패
+        log('결제 실패', payResult.message);
+        return;
+      }
+
+      // (3) 서버 검증/확정
+      const compRes = await fetch(`${base}/order/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify({ paymentId: paymentId })
+      });
+      const comp = await compRes.json();
+      log('complete 응답 (서버 검증 결과)', comp);
+    }
+  </script>
+</body>
+</html>

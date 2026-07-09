@@ -16,7 +16,8 @@ public class MemberMapper {
                 member.getGender(),
                 member.getStatus(),
                 member.getRole(),
-                member.getCreatedAt()
+                member.getCreatedAt(),
+                member.getLastLogin()
         );
     }
 
