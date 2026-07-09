@@ -48,11 +48,9 @@ class CsServiceTest {
     private static final Long MEMBER_ID = 1L;
     private static final Long OTHER_MEMBER_ID = 2L;
     private static final Long QNA_ID = 10L;
+
     @Mock
     private FaqRepository faqRepository;
-
-    @InjectMocks
-    private CsService csService;
 
     private Qna createQna(Long id, Long memberId, boolean answered) {
         Qna qna = Qna.builder()
@@ -149,6 +147,9 @@ class CsServiceTest {
         // then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).type()).isEqualTo(QnaType.ORDER);
+    }
+
+    @Test
     @DisplayName("내 QNA 상세 조회 성공")
     void findQnaById_Success() {
         // given

@@ -99,6 +99,9 @@ class CsControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1));
+    }
+
+    @Test
     @DisplayName("faqList - 비로그인 사용자가 전체 FAQ 조회 성공")
     void faqList_Success() throws Exception {
         // given
