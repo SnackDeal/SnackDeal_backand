@@ -34,14 +34,32 @@ public class CouponBoard {
     private LocalDateTime deletedAt;
 
     @Builder
-    public CouponBoard(String title, String content, String thumbnailUrl, LocalDateTime startAt, LocalDateTime endAt) {
+    public CouponBoard(String title, String content, String thumbnailUrl, Boolean isActive,
+                       LocalDateTime startAt, LocalDateTime endAt) {
         this.title = title;
         this.content = content;
         this.thumbnailUrl = thumbnailUrl;
-        this.isActive = true;
+        this.isActive = isActive == null || isActive;
         this.startAt = startAt;
         this.endAt = endAt;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void update(String title, String content, String thumbnailUrl, Boolean isActive,
+                       LocalDateTime startAt, LocalDateTime endAt) {
+        this.title = title;
+        this.content = content;
+        this.thumbnailUrl = thumbnailUrl;
+        this.isActive = isActive == null ? this.isActive : isActive;
+        this.startAt = startAt;
+        this.endAt = endAt;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void delete() {
+        this.isActive = false;
+        this.deletedAt = LocalDateTime.now();
+        this.updatedAt = this.deletedAt;
     }
 }

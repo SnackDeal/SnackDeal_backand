@@ -44,12 +44,19 @@ public enum ResponseCode {
     OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "PR002", "재고가 부족합니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "PR003", "카테고리를 찾을 수 없습니다."),
     DUPLICATE_CATEGORY(HttpStatus.CONFLICT, "PR004", "이미 존재하는 카테고리입니다."),
+
     DUPLICATE_CATEGORY_ORDER_ID(HttpStatus.BAD_REQUEST, "PR005", "중복된 카테고리 ID가 포함되어 있습니다."),
     DUPLICATE_CATEGORY_SORT_ORDER(HttpStatus.BAD_REQUEST, "PR006", "중복된 정렬 순서가 포함되어 있습니다."),
     CATEGORY_ORDER_SIZE_MISMATCH(HttpStatus.BAD_REQUEST, "PR007", "전체 카테고리 순서 정보가 필요합니다."),
 
+    PRODUCT_IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PR005", "상품 이미지를 찾을 수 없습니다."),
+    INVALID_PRODUCT_STATUS(HttpStatus.BAD_REQUEST, "PR006", "허용되지 않는 상품 상태값입니다."),
+    INVALID_PAGE_REQUEST(HttpStatus.BAD_REQUEST, "PR007", "페이지 요청 값이 올바르지 않습니다."),
+    INVALID_PRODUCT_SORT(HttpStatus.BAD_REQUEST, "PR008", "허용되지 않는 상품 정렬 조건입니다."),
+
     // Cart
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CA001", "장바구니 항목을 찾을 수 없습니다."),
+    CART_OUT_OF_STOCK(HttpStatus.UNPROCESSABLE_ENTITY, "CA002", "재고가 부족합니다."),
 
     // Order / Delivery
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "OR001", "주문을 찾을 수 없습니다."),
@@ -74,6 +81,10 @@ public enum ResponseCode {
     COUPON_ALREADY_ISSUED(HttpStatus.CONFLICT, "CO003", "이미 발급받은 쿠폰입니다."),
     COUPON_SOLD_OUT(HttpStatus.BAD_REQUEST, "CO004", "쿠폰 수량이 모두 소진되었습니다."),
     COUPON_CONDITION_NOT_MET(HttpStatus.CONFLICT, "CO005", "쿠폰 사용 조건을 충족하지 않거나 만료된 쿠폰입니다."),
+    COUPON_NOT_ACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "CO006", "비활성화된 쿠폰입니다."),
+    COUPON_NOT_OPEN(HttpStatus.UNPROCESSABLE_ENTITY, "CO007", "아직 발급 가능한 쿠폰이 아닙니다."),
+    INVALID_COUPON_POLICY(HttpStatus.BAD_REQUEST, "CO008", "쿠폰 정책이 올바르지 않습니다."),
+    COUPON_BOARD_HAS_COUPONS(HttpStatus.UNPROCESSABLE_ENTITY, "CO009", "소속 쿠폰이 있는 이벤트 게시판은 삭제할 수 없습니다."),
 
     // CS (notice/faq/qna)
     NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "CS001", "공지사항을 찾을 수 없습니다."),

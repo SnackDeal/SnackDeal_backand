@@ -1,7 +1,69 @@
 package io.snackdeal.backand.domain.coupon.repository;
 
 import io.snackdeal.backand.domain.coupon.entity.Coupon;
+import io.snackdeal.backand.domain.coupon.entity.IssueType;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface CouponRepository extends JpaRepository<Coupon, Long> {
+
+    Optional<Coupon> findByIdAndDeletedAtIsNull(Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select c
+            from Coupon c
+            where c.id = :couponId
+              and c.deletedAt is null
+            """)
+    Optional<Coupon> findByIdForUpdate(@Param("couponId") Long couponId);
+
+    @Query("""
+            select c
+            from Coupon c
+            where c.deletedAt is null
+              and (:keyword is null or lower(c.name) like lower(concat('%', :keyword, '%')))
+              and (:issueType is null or c.issueType = :issueType)
+              and (
+                  :statusName is null
+                  or (:statusName = 'STOPPED' and c.isActive = false)
+                  or (:statusName = 'EXPIRED' and c.isActive = true and c.validUntil is not null and c.validUntil < :now)
+                  or (:statusName = 'ACTIVE' and c.isActive = true and (c.validUntil is null or c.validUntil >= :now))
+              )
+            """)
+    Page<Coupon> searchAdminCoupons(@Param("keyword") String keyword,
+                                    @Param("issueType") IssueType issueType,
+                                    @Param("statusName") String statusName,
+                                    @Param("now") java.time.LocalDateTime now,
+                                    Pageable pageable);
+
+    List<Coupon> findByCouponBoardIdAndDeletedAtIsNull(Long couponBoardId);
+
+    boolean existsByCouponBoardIdAndDeletedAtIsNull(Long couponBoardId);
+
+    List<Coupon> findByCouponBoardIdAndIssueTypeAndIsActiveTrueAndDeletedAtIsNull(Long couponBoardId,
+                                                                                 IssueType issueType);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select c
+            from Coupon c
+            where c.deletedAt is null
+              and c.issueType = :issueType
+              and c.isActive = true
+              and (c.validFrom is null or c.validFrom <= :now)
+              and (c.validUntil is null or c.validUntil >= :now)
+              and (c.totalQuantity = 0 or c.issuedQuantity < c.totalQuantity)
+            order by c.createdAt desc
+            """)
+    List<Coupon> findIssuableCouponsForUpdate(@Param("issueType") IssueType issueType,
+                                              @Param("now") java.time.LocalDateTime now);
 }

@@ -84,7 +84,7 @@ class OrderApiIntegrationTest {
         Member user = saveMember("buyer@test.com", MemberRole.USER);
         Product product = saveProduct(4500L, 10);
 
-        // 1) 주문 준비 — 상품 9,000 (기본 배송비 0) → amount 9,000
+        // 주문 준비 — 상품 9,000 (기본 배송비 0) → amount 9,000
         String prepareBody = objectMapper.writeValueAsString(Map.of(
                 "items", List.of(Map.of("productId", product.getId(), "quantity", 2)),
                 "shipping", Map.of(
@@ -102,7 +102,7 @@ class OrderApiIntegrationTest {
 
         String paymentId = json(prepareResult).get("data").get("paymentId").asString();
 
-        // 2) 결제 검증 — 포트원 V2 가 동일 금액(9,000) PAID 로 응답하도록 Mock
+        // 결제 검증 — 포트원 V2 가 동일 금액(9,000) PAID 로 응답하도록 Mock
         when(portOneClient.getPayment(any())).thenReturn(new PortOnePayment(
                 paymentId, 9000L, "PAID", "Card", "TOSSPAYMENTS", "http://receipt", LocalDateTime.now()));
 
@@ -121,13 +121,13 @@ class OrderApiIntegrationTest {
         // 재고 차감 확인 (10 - 2 = 8)
         org.junit.jupiter.api.Assertions.assertEquals(8, productRepository.findById(product.getId()).get().getStock());
 
-        // 3) 주문내역 조회
+        // 주문내역 조회
         mockMvc.perform(get("/order/list").with(as(user)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.total").value(1))
                 .andExpect(jsonPath("$.data.orders[0].mainProductName").value("허니버터 프레첼"));
 
-        // 4) 주문 상세
+        // 주문 상세
         mockMvc.perform(get("/order/{id}", orderId).with(as(user)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("PAYMENT_COMPLETED"))
@@ -196,6 +196,55 @@ class OrderApiIntegrationTest {
         long orderId = json(completeResult).get("data").get("orderId").asLong();
 
         mockMvc.perform(get("/order/{id}", orderId).with(as(other)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("OR009"));
+    }
+
+    @Test
+    @DisplayName("결제 대기 주문 즉시취소: prepare 후 결제 없이 취소하면 CANCELLED")
+    void cancelPendingOrder() throws Exception {
+        Member user = saveMember("canceler@test.com", MemberRole.USER);
+        Product product = saveProduct(4500L, 10);
+
+        String prepareBody = objectMapper.writeValueAsString(Map.of(
+                "items", List.of(Map.of("productId", product.getId(), "quantity", 1)),
+                "shipping", Map.of("receiverName", "홍길동", "receiverPhone", "01012345678",
+                        "zipcode", "06133", "address", "서울")));
+        mockMvc.perform(post("/order/prepare").with(as(user))
+                        .contentType(MediaType.APPLICATION_JSON).content(prepareBody))
+                .andExpect(status().isOk());
+        long orderId = orderIdOf(user);
+
+        mockMvc.perform(post("/order/{id}/cancel", orderId).with(as(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("CANCELLED"));
+
+        // 재고는 prepare 단계에서 손대지 않았으므로 그대로
+        org.junit.jupiter.api.Assertions.assertEquals(10, productRepository.findById(product.getId()).get().getStock());
+
+        // 이미 취소된 주문을 다시 취소하면 400
+        mockMvc.perform(post("/order/{id}/cancel", orderId).with(as(user)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("OR002"));
+    }
+
+    @Test
+    @DisplayName("타인의 결제대기 주문은 취소할 수 없다 (403)")
+    void cancelOthersOrderForbidden() throws Exception {
+        Member owner = saveMember("cancelowner@test.com", MemberRole.USER);
+        Member other = saveMember("cancelother@test.com", MemberRole.USER);
+        Product product = saveProduct(4500L, 10);
+
+        String prepareBody = objectMapper.writeValueAsString(Map.of(
+                "items", List.of(Map.of("productId", product.getId(), "quantity", 1)),
+                "shipping", Map.of("receiverName", "홍길동", "receiverPhone", "01012345678",
+                        "zipcode", "06133", "address", "서울")));
+        mockMvc.perform(post("/order/prepare").with(as(owner))
+                        .contentType(MediaType.APPLICATION_JSON).content(prepareBody))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        long orderId = orderIdOf(owner);
+
+        mockMvc.perform(post("/order/{id}/cancel", orderId).with(as(other)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("OR009"));
     }

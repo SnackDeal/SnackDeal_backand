@@ -7,6 +7,7 @@ import io.snackdeal.backand.api.user.member.dto.MemberDescription;
 import io.snackdeal.backand.api.user.member.dto.MemberStatusResponse;
 import io.snackdeal.backand.api.user.member.dto.MemberStatusUpdateRequest;
 import io.snackdeal.backand.api.user.member.dto.MemberUpdateRequest;
+import io.snackdeal.backand.domain.coupon.service.CouponService;
 import io.snackdeal.backand.domain.member.entity.Member;
 import io.snackdeal.backand.domain.member.entity.MemberRole;
 import io.snackdeal.backand.domain.member.entity.MemberStatus;
@@ -34,6 +35,7 @@ public class MemberService implements UserDetailsService {
     private final EmailVerificationService emailVerificationService;
     private final RefreshTokenService refreshTokenService;
     private final PasswordEncoder passwordEncoder;
+    private final CouponService couponService;
 
     @Transactional
     public MemberDescription join(JoinRequest request) {
@@ -70,12 +72,15 @@ public class MemberService implements UserDetailsService {
                 .role(MemberRole.USER)
                 .build();
 
+        Member saved;
         try {
-            Member saved = repository.saveAndFlush(member);
-            return MemberMapper.toDescription(saved);
+            saved = repository.saveAndFlush(member);
         } catch (DataIntegrityViolationException e) {
             throw new BusinessException(ResponseCode.DUPLICATE_EMAIL);
         }
+
+        couponService.issueSigninCoupons(saved.getId());
+        return MemberMapper.toDescription(saved);
     }
 
     @Override
@@ -141,9 +146,9 @@ public class MemberService implements UserDetailsService {
      * 관리자의 회원 상태 변경 (ACTIVE / INACTIVE / DELETED).
      * 하드 삭제하지 않고 상태값 + deleted_at 으로 관리하여 주문/문의 이력을 보존
      * 방어 규칙:
-     *  1) 본인 계정은 변경 불가 → 403 (관리자가 실수로 자기 계정을 잠그는 것을 방지)
-     *  2) 이미 탈퇴(DELETED)한 회원은 되돌릴 수 없음(터미널 상태) → 422
-     *  3) DELETED 로 바꾸면 RefreshToken 을 즉시 삭제해 로그인 세션을 무효화
+     *  본인 계정은 변경 불가 → 403 (관리자가 실수로 자기 계정을 잠그는 것을 방지)
+     *  이미 탈퇴(DELETED)한 회원은 되돌릴 수 없음(터미널 상태) → 422
+     *  DELETED 로 바꾸면 RefreshToken 을 즉시 삭제해 로그인 세션을 무효화
      *     (로그인 API 에서도 DELETED 계정은 차단 → AuthService.login 참고)
      * @param adminId 요청한 관리자 본인 id (본인 계정 변경 차단 비교용)
      */
@@ -152,12 +157,12 @@ public class MemberService implements UserDetailsService {
         Member member = repository.findById(id)
                 .orElseThrow(() -> new BusinessException(ResponseCode.MEMBER_NOT_FOUND));
 
-        // 1) 본인 계정 상태 변경 차단
+        // 본인 계정 상태 변경 차단
         if (member.getId().equals(adminId)) {
             throw new BusinessException(ResponseCode.SELF_STATUS_CHANGE_FORBIDDEN);
         }
 
-        // 2) 탈퇴한 회원은 되돌릴 수 없음 (DELETED 는 최종 상태)
+        // 탈퇴한 회원은 되돌릴 수 없음 (DELETED 는 최종 상태)
         if (member.getStatus() == MemberStatus.DELETED) {
             throw new BusinessException(ResponseCode.INVALID_MEMBER_STATUS_TRANSITION);
         }

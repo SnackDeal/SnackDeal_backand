@@ -88,7 +88,7 @@
       if (!accessToken) { alert('먼저 로그인하세요'); return; }
       const base = $('baseUrl');
 
-      // (1) 주문 준비 — paymentId, amount 확보
+      // 주문 준비 — paymentId, amount 확보
       const prepRes = await fetch(`${base}/order/prepare`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },

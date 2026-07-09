@@ -1,5 +1,6 @@
 package io.snackdeal.backand.domain.order.service;
 
+import io.snackdeal.backand.api.user.order.dto.OrderCancelResponse;
 import io.snackdeal.backand.api.user.order.dto.OrderCompleteRequest;
 import io.snackdeal.backand.api.user.order.dto.OrderCompleteResponse;
 import io.snackdeal.backand.api.user.order.dto.OrderItemRequest;
@@ -259,5 +260,46 @@ class OrderServiceTest {
         BusinessException e = assertThrows(BusinessException.class,
                 () -> orderService.refund(EMAIL, 100L, new RefundRequest("변심")));
         assertEquals(ResponseCode.REFUND_NOT_ALLOWED, e.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("cancel - 결제대기 주문은 즉시취소되고 결제도 CANCELLED 처리된다")
+    void cancel_success() {
+        Orders order = order(100L, 12000L, 1L, OrderStatus.PENDING_PAYMENT);
+        Payment payment = Payment.builder().amount(12000L).pgProvider("tosspayments").orderId(100L)
+                .merchantUid("ORD-1").build();
+
+        when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
+        when(ordersRepository.findById(100L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(100L)).thenReturn(Optional.of(payment));
+
+        OrderCancelResponse response = orderService.cancel(EMAIL, 100L);
+
+        assertEquals(OrderStatus.CANCELLED, response.status());
+        assertEquals(OrderStatus.CANCELLED, order.getStatus());
+        assertEquals(PaymentStatus.CANCELLED, payment.getStatus());
+    }
+
+    @Test
+    @DisplayName("cancel - 타인의 주문은 취소할 수 없다(403)")
+    void cancel_accessDenied() {
+        Orders order = order(100L, 12000L, 2L, OrderStatus.PENDING_PAYMENT); // 주인은 memberId=2
+        when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
+        when(ordersRepository.findById(100L)).thenReturn(Optional.of(order));
+
+        BusinessException e = assertThrows(BusinessException.class, () -> orderService.cancel(EMAIL, 100L));
+        assertEquals(ResponseCode.ORDER_ACCESS_DENIED, e.getResponseCode());
+    }
+
+    @Test
+    @DisplayName("cancel - 이미 결제완료 등으로 진행된 주문은 취소할 수 없다(422)")
+    void cancel_notAllowed() {
+        Orders order = order(100L, 12000L, 1L, OrderStatus.PAYMENT_COMPLETED);
+        when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
+        when(ordersRepository.findById(100L)).thenReturn(Optional.of(order));
+
+        BusinessException e = assertThrows(BusinessException.class, () -> orderService.cancel(EMAIL, 100L));
+        assertEquals(ResponseCode.ORDER_CANCEL_NOT_ALLOWED, e.getResponseCode());
+        assertEquals(OrderStatus.PAYMENT_COMPLETED, order.getStatus());
     }
 }
