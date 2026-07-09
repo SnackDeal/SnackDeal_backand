@@ -30,12 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @TestPropertySource(
-        locations = "classpath:test-config.properties",
-        properties = {
-                "custom.cloud.s3.access-key=test-access-key",
-                "custom.cloud.s3.secret-key=test-secret-key",
-                "custom.cloud.s3.bucket=test-bucket"
-        }
+        locations = "classpath:test-config.properties"
 )
 @DisplayName("ProductController 클래스의")
 class ProductControllerTest {
