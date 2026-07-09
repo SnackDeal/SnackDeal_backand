@@ -3,6 +3,7 @@ package io.snackdeal.backand.domain.cs.service;
 import io.snackdeal.backand.api.user.cs.dto.*;
 import io.snackdeal.backand.domain.cs.entity.Qna;
 import io.snackdeal.backand.domain.cs.entity.QnaAnswer;
+import io.snackdeal.backand.domain.cs.repository.NoticeRepository;
 import io.snackdeal.backand.domain.cs.repository.QnaAnswerRepository;
 import io.snackdeal.backand.domain.cs.repository.QnaRepository;
 import io.snackdeal.backand.api.user.cs.dto.FaqResponse;
@@ -18,8 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class CsService {
@@ -28,13 +27,21 @@ public class CsService {
     private final QnaAnswerRepository qnaAnswerRepository;
 
     private final FaqRepository faqRepository;
+    private final NoticeRepository noticeRepository;
 
-    public Object findNoticeList() {
-        throw new BusinessException(ResponseCode.NOT_IMPLEMENTED);
+    @Transactional(readOnly = true)
+    public List<NoticeSummaryResponse> findNoticeList() {
+        return noticeRepository.findAllByDeletedAtIsNullOrderByIsPinnedDescCreatedAtDescIdDesc()
+                .stream()
+                .map(NoticeSummaryResponse::from)
+                .toList();
     }
 
-    public Object findNoticeById(Long id) {
-        throw new BusinessException(ResponseCode.NOT_IMPLEMENTED);
+    @Transactional(readOnly = true)
+    public NoticeResponse findNoticeById(Long id) {
+        return noticeRepository.findByIdAndDeletedAtIsNull(id)
+                .map(NoticeResponse::from)
+                .orElseThrow(() -> new BusinessException(ResponseCode.NOTICE_NOT_FOUND));
     }
 
     public List<FaqResponse> findFaqList(QnaType type) {

@@ -25,13 +25,13 @@ public class CsController {
 
     @Operation(summary = "공지사항 목록 조회", description = "고객센터 공지사항 목록을 조회합니다.")
     @GetMapping("/cs/notice/list")
-    public CommonResponse<Object> noticeList() {
+    public CommonResponse<List<NoticeSummaryResponse>> noticeList() {
         return CommonResponse.success(csService.findNoticeList());
     }
 
     @Operation(summary = "공지사항 상세 조회", description = "공지사항 ID로 고객센터 공지사항 상세 내용을 조회합니다.")
     @GetMapping("/cs/notice/{id}")
-    public CommonResponse<Object> noticeDetail(@PathVariable Long id) {
+    public CommonResponse<NoticeResponse> noticeDetail(@PathVariable Long id) {
         return CommonResponse.success(csService.findNoticeById(id));
     }
 
