@@ -9,8 +9,8 @@ import io.snackdeal.backand.api.user.order.dto.OrderPrepareResponse;
 import io.snackdeal.backand.api.user.order.dto.RefundRequest;
 import io.snackdeal.backand.api.user.order.dto.RefundResponse;
 import io.snackdeal.backand.api.user.order.dto.ShippingRequest;
-import io.snackdeal.backand.domain.coupon.repository.CouponRepository;
-import io.snackdeal.backand.domain.coupon.repository.UserCouponRepository;
+import io.snackdeal.backand.domain.coupon.dto.CouponDiscountResult;
+import io.snackdeal.backand.domain.coupon.service.CouponService;
 import io.snackdeal.backand.domain.delivery.repository.DeliveryRepository;
 import io.snackdeal.backand.domain.member.entity.Member;
 import io.snackdeal.backand.domain.member.repository.MemberRepository;
@@ -66,8 +66,7 @@ class OrderServiceTest {
     @Mock private ShippingRepository shippingRepository;
     @Mock private ShippingPolicyRepository shippingPolicyRepository;
     @Mock private ProductRepository productRepository;
-    @Mock private UserCouponRepository userCouponRepository;
-    @Mock private CouponRepository couponRepository;
+    @Mock private CouponService couponService;
     @Mock private DeliveryRepository deliveryRepository;
     @Mock private MemberRepository memberRepository;
     @Mock private PortOneClient portOneClient;
@@ -106,6 +105,8 @@ class OrderServiceTest {
     void prepare_success() {
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product(1L, 4500L, 10)));
+        when(couponService.calculateDiscountForOrder(any(), any(), any()))
+                .thenAnswer(inv -> CouponDiscountResult.none(inv.getArgument(2)));
         when(ordersRepository.findByOrderNumber(any())).thenReturn(Optional.empty());
         when(ordersRepository.save(any(Orders.class))).thenAnswer(inv -> {
             Orders o = inv.getArgument(0);
@@ -136,6 +137,8 @@ class OrderServiceTest {
 
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(member(1L)));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product(1L, 4500L, 10)));
+        when(couponService.calculateDiscountForOrder(any(), any(), any()))
+                .thenAnswer(inv -> CouponDiscountResult.none(inv.getArgument(2)));
         when(shippingPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
         when(ordersRepository.findByOrderNumber(any())).thenReturn(Optional.empty());
         when(ordersRepository.save(any(Orders.class))).thenAnswer(inv -> {

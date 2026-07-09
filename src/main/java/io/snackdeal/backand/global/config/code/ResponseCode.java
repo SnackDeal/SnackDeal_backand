@@ -45,14 +45,16 @@ public enum ResponseCode {
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "PR003", "카테고리를 찾을 수 없습니다."),
     DUPLICATE_CATEGORY(HttpStatus.CONFLICT, "PR004", "이미 존재하는 카테고리입니다."),
 
-    DUPLICATE_CATEGORY_ORDER_ID(HttpStatus.BAD_REQUEST, "PR005", "중복된 카테고리 ID가 포함되어 있습니다."),
-    DUPLICATE_CATEGORY_SORT_ORDER(HttpStatus.BAD_REQUEST, "PR006", "중복된 정렬 순서가 포함되어 있습니다."),
-    CATEGORY_ORDER_SIZE_MISMATCH(HttpStatus.BAD_REQUEST, "PR007", "전체 카테고리 순서 정보가 필요합니다."),
-
     PRODUCT_IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PR005", "상품 이미지를 찾을 수 없습니다."),
     INVALID_PRODUCT_STATUS(HttpStatus.BAD_REQUEST, "PR006", "허용되지 않는 상품 상태값입니다."),
     INVALID_PAGE_REQUEST(HttpStatus.BAD_REQUEST, "PR007", "페이지 요청 값이 올바르지 않습니다."),
     INVALID_PRODUCT_SORT(HttpStatus.BAD_REQUEST, "PR008", "허용되지 않는 상품 정렬 조건입니다."),
+
+
+    DUPLICATE_CATEGORY_ORDER_ID(HttpStatus.BAD_REQUEST, "CA005", "중복된 카테고리 ID가 포함되어 있습니다."),
+    DUPLICATE_CATEGORY_SORT_ORDER(HttpStatus.BAD_REQUEST, "CA006", "중복된 정렬 순서가 포함되어 있습니다."),
+    CATEGORY_ORDER_SIZE_MISMATCH(HttpStatus.BAD_REQUEST, "CA007", "전체 카테고리 순서 정보가 필요합니다."),
+
 
     // Cart
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CA001", "장바구니 항목을 찾을 수 없습니다."),
