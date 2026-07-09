@@ -1,5 +1,6 @@
 package io.snackdeal.backand.api.user.cs.dto;
 
+import io.snackdeal.backand.domain.cs.entity.Faq;
 import io.snackdeal.backand.domain.cs.entity.QnaType;
 
 /** FAQ 응답 */
@@ -9,4 +10,12 @@ public record FaqResponse(
         String title,
         String content
 ) {
+    public static FaqResponse from(Faq faq) {
+        return new FaqResponse(
+                faq.getId(),
+                faq.getType(),
+                faq.getTitle(),
+                faq.getContent()
+        );
+    }
 }
