@@ -59,7 +59,7 @@ public class AdminCouponService {
         Map<Long, String> boardTitleMap = getBoardTitleMap(couponPage.getContent());
 
         List<AdminCouponSummaryResponse> coupons = couponPage.getContent().stream()
-                .map(coupon -> toSummaryResponse(coupon, boardTitleMap.get(coupon.getCouponBoardId()), now))
+                .map(coupon -> toSummaryResponse(coupon, getBoardTitle(coupon, boardTitleMap), now))
                 .toList();
 
         return new AdminCouponListResponse(coupons, page, size, couponPage.getTotalElements());
@@ -116,7 +116,7 @@ public class AdminCouponService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        String boardTitle = getBoardTitleMap(List.of(coupon)).get(coupon.getCouponBoardId());
+        String boardTitle = getBoardTitle(coupon, getBoardTitleMap(List.of(coupon)));
         return toSummaryResponse(coupon, boardTitle, now);
     }
 
@@ -198,7 +198,7 @@ public class AdminCouponService {
         }
         validatePeriod(request.validFrom(), request.validUntil());
         if (request.issueType() == IssueType.EVENT && request.couponBoardId() == null) {
-            throw new BusinessException(ResponseCode.INVALID_COUPON_POLICY, "EVENT 쿠폰은 couponBoardId가 필수입니다.");
+            throw new BusinessException(ResponseCode.INVALID_COUPON_POLICY, "이벤트 쿠폰은 couponBoardId가 필수입니다.");
         }
     }
 
@@ -279,6 +279,13 @@ public class AdminCouponService {
         return couponBoardRepository.findAllById(boardIds)
                 .stream()
                 .collect(Collectors.toMap(CouponBoard::getId, CouponBoard::getTitle));
+    }
+
+    private String getBoardTitle(Coupon coupon, Map<Long, String> boardTitleMap) {
+        if (coupon.getCouponBoardId() == null) {
+            return null;
+        }
+        return boardTitleMap.get(coupon.getCouponBoardId());
     }
 
     private AdminCouponSummaryResponse toSummaryResponse(Coupon coupon, String boardTitle, LocalDateTime now) {
