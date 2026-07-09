@@ -93,6 +93,8 @@ public enum ResponseCode {
     QNA_NOT_FOUND(HttpStatus.NOT_FOUND, "CS002", "문의글을 찾을 수 없습니다."),
     UNAUTHORIZED_QNA_UPDATE(HttpStatus.FORBIDDEN, "CS003", "본인 문의만 수정/삭제할 수 있습니다."),
     QNA_ALREADY_ANSWERED(HttpStatus.BAD_REQUEST, "CS004", "답변이 완료된 문의는 수정/삭제할 수 없습니다."),
+    FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "CS005", "FAQ를 찾을 수 없습니다."),
+    DUPLICATE_FAQ(HttpStatus.CONFLICT, "CS006", "이미 등록된 FAQ입니다."),
 
     // Dashboard
     INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "DA001", "조회 기간이 올바르지 않습니다."),
