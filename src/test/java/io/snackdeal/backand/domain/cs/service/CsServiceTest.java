@@ -1,44 +1,108 @@
 package io.snackdeal.backand.domain.cs.service;
 
+import io.snackdeal.backand.api.user.cs.dto.*;
+import io.snackdeal.backand.domain.cs.entity.Qna;
+import io.snackdeal.backand.domain.cs.entity.QnaAnswer;
+import io.snackdeal.backand.domain.cs.entity.QnaType;
+import io.snackdeal.backand.domain.cs.repository.QnaAnswerRepository;
+import io.snackdeal.backand.domain.cs.repository.QnaRepository;
+import io.snackdeal.backand.domain.cs.service.CsService;
+import io.snackdeal.backand.global.exception.BusinessException;
 import io.snackdeal.backand.api.user.cs.dto.FaqResponse;
 import io.snackdeal.backand.domain.cs.entity.Faq;
 import io.snackdeal.backand.domain.cs.entity.QnaType;
 import io.snackdeal.backand.domain.cs.repository.FaqRepository;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.BDDMockito.given;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CsServiceTest {
 
+    @Mock
+    private QnaRepository qnaRepository;
+
+    @Mock
+    private QnaAnswerRepository qnaAnswerRepository;
+
+    @InjectMocks
+    private CsService csService;
+
+    private static final Long MEMBER_ID = 1L;
+    private static final Long OTHER_MEMBER_ID = 2L;
+    private static final Long QNA_ID = 10L;
     @Mock
     private FaqRepository faqRepository;
 
     @InjectMocks
     private CsService csService;
 
-    @Disabled("TODO: implement")
-    @Test
-    @DisplayName("findNoticeList - TODO")
-    void findNoticeList_Success() {
-        fail("not implemented");
+    private Qna createQna(Long id, Long memberId, boolean answered) {
+        Qna qna = Qna.builder()
+                .type(QnaType.ORDER)
+                .title("Test title")
+                .content("Test content")
+                .attachmentUrl(null)
+                .memberId(memberId)
+                .build();
+        ReflectionTestUtils.setField(qna, "id", id);
+        ReflectionTestUtils.setField(qna, "isAnswered", answered);
+        ReflectionTestUtils.setField(qna, "createdAt", LocalDateTime.now());
+        ReflectionTestUtils.setField(qna, "updatedAt", LocalDateTime.now());
+        return qna;
     }
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("findNoticeById - TODO")
-    void findNoticeById_Success() {
-        fail("not implemented");
+    @DisplayName("QNA 생성 성공")
+    void createQna_Success() {
+        // given
+        QnaCreateRequest request = new QnaCreateRequest(QnaType.ORDER, "Test title", "Test content", null);
+        given(qnaRepository.save(any(Qna.class))).willAnswer(invocation -> {
+            Qna savedQna = invocation.getArgument(0);
+            ReflectionTestUtils.setField(savedQna, "id", QNA_ID);
+            return savedQna;
+        });
+
+        // when
+        QnaResponse response = csService.createQna(MEMBER_ID, request);
+
+        // then
+        assertThat(response.id()).isEqualTo(QNA_ID);
+    }
+
+    @Test
+    @DisplayName("내 QNA 목록 조회 성공")
+    void findMyQnaList_Success() {
+        // given
+        Qna qna1 = createQna(1L, MEMBER_ID, false);
+        Qna qna2 = createQna(2L, MEMBER_ID, true);
+        given(qnaRepository.findAllByMemberIdAndDeletedAtIsNullOrderByCreatedAtDesc(MEMBER_ID))
+                .willReturn(List.of(qna1, qna2));
+
+        // when
+        List<QnaSummaryResponse> result = csService.findMyQnaList(MEMBER_ID);
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).answered()).isFalse();
+        assertThat(result.get(1).answered()).isTrue();
     }
 
     @Test
@@ -85,48 +149,114 @@ class CsServiceTest {
         // then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).type()).isEqualTo(QnaType.ORDER);
-    }
-
-    @Disabled("TODO: implement")
-    @Test
-    @DisplayName("findMyQnaList - TODO")
-    void findMyQnaList_Success() {
-        fail("not implemented");
-    }
-
-    @Disabled("TODO: implement")
-    @Test
-    @DisplayName("createQna - TODO")
-    void createQna_Success() {
-        fail("not implemented");
-    }
-
-    @Disabled("TODO: implement")
-    @Test
-    @DisplayName("findQnaById - TODO")
+    @DisplayName("내 QNA 상세 조회 성공")
     void findQnaById_Success() {
-        fail("not implemented");
+        // given
+        Qna qna = createQna(QNA_ID, MEMBER_ID, false);
+        given(qnaRepository.findByIdAndMemberIdAndDeletedAtIsNull(QNA_ID, MEMBER_ID))
+                .willReturn(Optional.of(qna));
+        given(qnaAnswerRepository.findByQnaId(QNA_ID)).willReturn(Optional.empty());
+
+        // when
+        QnaResponse response = csService.findQnaById(MEMBER_ID, QNA_ID);
+
+        // then
+        assertThat(response.id()).isEqualTo(QNA_ID);
     }
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("updateQna - TODO")
+    @DisplayName("다른 사용자 QNA 상세 조회 차단")
+    void findQnaById_OtherMember_Blocked() {
+        // given
+        given(qnaRepository.findByIdAndMemberIdAndDeletedAtIsNull(QNA_ID, OTHER_MEMBER_ID))
+                .willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> csService.findQnaById(OTHER_MEMBER_ID, QNA_ID))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("QNA 수정 성공")
     void updateQna_Success() {
-        fail("not implemented");
+        // given
+        Qna qna = createQna(QNA_ID, MEMBER_ID, false);
+        given(qnaRepository.findByIdAndMemberIdAndDeletedAtIsNull(QNA_ID, MEMBER_ID))
+                .willReturn(Optional.of(qna));
+        given(qnaAnswerRepository.findByQnaId(QNA_ID)).willReturn(Optional.empty());
+        QnaUpdateRequest request = new QnaUpdateRequest(QnaType.SHIPPING, "Updated title", "Updated content", null);
+
+        // when
+        QnaResponse response = csService.updateQna(MEMBER_ID, QNA_ID, request);
+
+        // then
+        assertThat(response.title()).isEqualTo("Updated title");
     }
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("deleteQna - TODO")
+    @DisplayName("다른 사용자 QNA 수정 차단")
+    void updateQna_OtherMember_Blocked() {
+        // given
+        given(qnaRepository.findByIdAndMemberIdAndDeletedAtIsNull(QNA_ID, OTHER_MEMBER_ID))
+                .willReturn(Optional.empty());
+        QnaUpdateRequest request = new QnaUpdateRequest(QnaType.SHIPPING, "Updated", "Updated", null);
+
+        // when & then
+        assertThatThrownBy(() -> csService.updateQna(OTHER_MEMBER_ID, QNA_ID, request))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("답변 완료된 QNA 수정 차단")
+    void updateQna_Answered_Blocked() {
+        // given
+        Qna qna = createQna(QNA_ID, MEMBER_ID, true);
+        given(qnaRepository.findByIdAndMemberIdAndDeletedAtIsNull(QNA_ID, MEMBER_ID))
+                .willReturn(Optional.of(qna));
+        QnaUpdateRequest request = new QnaUpdateRequest(QnaType.SHIPPING, "Updated", "Updated", null);
+
+        // when & then
+        assertThatThrownBy(() -> csService.updateQna(MEMBER_ID, QNA_ID, request))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("QNA 삭제 성공")
     void deleteQna_Success() {
-        fail("not implemented");
+        // given
+        Qna qna = createQna(QNA_ID, MEMBER_ID, false);
+        given(qnaRepository.findByIdAndMemberIdAndDeletedAtIsNull(QNA_ID, MEMBER_ID))
+                .willReturn(Optional.of(qna));
+
+        // when
+        csService.deleteQna(MEMBER_ID, QNA_ID);
+
+        // then
+        assertThat(qna.getDeletedAt()).isNotNull();
     }
 
-    @Disabled("TODO: implement")
     @Test
-    @DisplayName("askChatbot - TODO")
-    void askChatbot_Success() {
-        fail("not implemented");
+    @DisplayName("다른 사용자 QNA 삭제 차단")
+    void deleteQna_OtherMember_Blocked() {
+        // given
+        given(qnaRepository.findByIdAndMemberIdAndDeletedAtIsNull(QNA_ID, OTHER_MEMBER_ID))
+                .willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> csService.deleteQna(OTHER_MEMBER_ID, QNA_ID))
+                .isInstanceOf(BusinessException.class);
     }
 
+    @Test
+    @DisplayName("답변 완료된 QNA 삭제 차단")
+    void deleteQna_Answered_Blocked() {
+        // given
+        Qna qna = createQna(QNA_ID, MEMBER_ID, true);
+        given(qnaRepository.findByIdAndMemberIdAndDeletedAtIsNull(QNA_ID, MEMBER_ID))
+                .willReturn(Optional.of(qna));
+
+        // when & then
+        assertThatThrownBy(() -> csService.deleteQna(MEMBER_ID, QNA_ID))
+                .isInstanceOf(BusinessException.class);
+    }
 }
