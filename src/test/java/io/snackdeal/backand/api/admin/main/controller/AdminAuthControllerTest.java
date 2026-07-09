@@ -17,7 +17,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * 관리자 로그인 컨트롤러 단위테스트: AuthService.adminLogin 위임만 검증
+ * 관리자 로그인 컨트롤러 단위테스트
  */
 @ExtendWith(MockitoExtension.class)
 class AdminAuthControllerTest {

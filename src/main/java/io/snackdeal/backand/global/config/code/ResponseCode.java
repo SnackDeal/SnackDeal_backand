@@ -96,6 +96,9 @@ public enum ResponseCode {
     FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "CS005", "FAQ를 찾을 수 없습니다."),
     DUPLICATE_FAQ(HttpStatus.CONFLICT, "CS006", "이미 등록된 FAQ입니다."),
 
+    // Dashboard
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "DA001", "조회 기간이 올바르지 않습니다."),
+
     // Server
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E001", "서버 내부 오류가 발생했습니다."),
     ;

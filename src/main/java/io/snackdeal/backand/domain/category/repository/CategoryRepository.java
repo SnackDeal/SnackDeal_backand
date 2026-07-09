@@ -19,4 +19,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     boolean existsByNameAndDeletedAtIsNull(String name);
 
     boolean existsByNameAndIdNotAndDeletedAtIsNull(String name, Long id);
+
 }
