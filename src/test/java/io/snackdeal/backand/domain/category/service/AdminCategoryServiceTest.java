@@ -8,7 +8,6 @@ import io.snackdeal.backand.domain.category.repository.CategoryRepository;
 import io.snackdeal.backand.global.config.code.ResponseCode;
 import io.snackdeal.backand.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,8 +43,6 @@ class AdminCategoryServiceTest {
         ReflectionTestUtils.setField(category, "id", id);
         return category;
     }
-
-
 
     @Nested
     @DisplayName("findList")
@@ -89,15 +86,15 @@ class AdminCategoryServiceTest {
             Category category1 = Category.builder().name("과자").sortOrder(1).build();
             Category category2 = Category.builder().name("음료").sortOrder(2).build();
 
-            given(categoryRepository.findById(1L)).willReturn(Optional.of(category1));
-            given(categoryRepository.findById(2L)).willReturn(Optional.of(category2));
+            given(categoryRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(category1));
+            given(categoryRepository.findByIdAndDeletedAtIsNull(2L)).willReturn(Optional.of(category2));
 
             List<CategoryOrderRequest.CategoryOrderItem> items = List.of(
                     new CategoryOrderRequest.CategoryOrderItem(1L, 2),
                     new CategoryOrderRequest.CategoryOrderItem(2L, 1)
             );
             CategoryOrderRequest request = new CategoryOrderRequest(items);
-            given(categoryRepository.count()).willReturn(2L);
+            given(categoryRepository.countByDeletedAtIsNull()).willReturn(2L);
 
             // when
             adminCategoryService.updateOrder(request);
@@ -111,13 +108,13 @@ class AdminCategoryServiceTest {
         @DisplayName("존재하지 않는 categoryId 가 포함되면 CATEGORY_NOT_FOUND 예외가 발생한다")
         void updateOrder_NonExistingCategoryId() {
             // given
-            given(categoryRepository.findById(999L)).willReturn(Optional.empty());
+            given(categoryRepository.findByIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
 
             List<CategoryOrderRequest.CategoryOrderItem> items = List.of(
                     new CategoryOrderRequest.CategoryOrderItem(999L, 1)
             );
             CategoryOrderRequest request = new CategoryOrderRequest(items);
-            given(categoryRepository.count()).willReturn(1L);
+            given(categoryRepository.countByDeletedAtIsNull()).willReturn(1L);
 
             // when & then
             assertThatThrownBy(() -> adminCategoryService.updateOrder(request))
@@ -133,7 +130,7 @@ class AdminCategoryServiceTest {
                     new CategoryOrderRequest.CategoryOrderItem(1L, 1)
             );
             CategoryOrderRequest request = new CategoryOrderRequest(items);
-            given(categoryRepository.count()).willReturn(2L);
+            given(categoryRepository.countByDeletedAtIsNull()).willReturn(2L);
 
             // when & then
             assertThatThrownBy(() -> adminCategoryService.updateOrder(request))
@@ -195,7 +192,7 @@ class AdminCategoryServiceTest {
         // given
         CategoryRequest request = new CategoryRequest("과자", 1);
         Category savedCategory = createCategory(1L, "과자", 1);
-        given(categoryRepository.existsByName("과자")).willReturn(false);
+        given(categoryRepository.existsByNameAndDeletedAtIsNull("과자")).willReturn(false);
         given(categoryRepository.save(any(Category.class))).willReturn(savedCategory);
 
         // when
@@ -212,7 +209,7 @@ class AdminCategoryServiceTest {
     void save_duplicateName_fail() {
         // given
         CategoryRequest request = new CategoryRequest("과자", 1);
-        given(categoryRepository.existsByName("과자")).willReturn(true);
+        given(categoryRepository.existsByNameAndDeletedAtIsNull("과자")).willReturn(true);
 
         // when & then
         assertThatThrownBy(() -> adminCategoryService.save(request))
@@ -230,7 +227,7 @@ class AdminCategoryServiceTest {
         CategoryRequest request = new CategoryRequest("새과자", 2);
         Category category = createCategory(id, "과자", 1);
         given(categoryRepository.findByIdAndDeletedAtIsNull(id)).willReturn(Optional.of(category));
-        given(categoryRepository.existsByNameAndIdNot("새과자", id)).willReturn(false);
+        given(categoryRepository.existsByNameAndIdNotAndDeletedAtIsNull("새과자", id)).willReturn(false);
 
         // when
         CategoryResponse result = adminCategoryService.update(id, request);
@@ -263,7 +260,7 @@ class AdminCategoryServiceTest {
         CategoryRequest request = new CategoryRequest("중복이름", 1);
         Category category = createCategory(id, "과자", 1);
         given(categoryRepository.findByIdAndDeletedAtIsNull(id)).willReturn(Optional.of(category));
-        given(categoryRepository.existsByNameAndIdNot("중복이름", id)).willReturn(true);
+        given(categoryRepository.existsByNameAndIdNotAndDeletedAtIsNull("중복이름", id)).willReturn(true);
 
         // when & then
         assertThatThrownBy(() -> adminCategoryService.update(id, request))

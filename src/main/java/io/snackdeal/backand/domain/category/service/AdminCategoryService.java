@@ -59,14 +59,6 @@ public class AdminCategoryService {
         }
     }
 
-    /*public Object save(Object request) {
-        throw new BusinessException(ResponseCode.NOT_IMPLEMENTED);
-    }*/
-
-    /*public Object update(Long id, Object request) {
-        throw new BusinessException(ResponseCode.NOT_IMPLEMENTED);
-    }*/
-
     @Transactional
     public CategoryResponse save(CategoryRequest request) {
         if (categoryRepository.existsByNameAndDeletedAtIsNull(request.name())) {

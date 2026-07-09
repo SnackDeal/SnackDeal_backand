@@ -94,6 +94,9 @@ public enum ResponseCode {
     UNAUTHORIZED_QNA_UPDATE(HttpStatus.FORBIDDEN, "CS003", "본인 문의만 수정/삭제할 수 있습니다."),
     QNA_ALREADY_ANSWERED(HttpStatus.BAD_REQUEST, "CS004", "답변이 완료된 문의는 수정/삭제할 수 없습니다."),
 
+    // Dashboard
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "DA001", "조회 기간이 올바르지 않습니다."),
+
     // Server
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E001", "서버 내부 오류가 발생했습니다."),
     ;

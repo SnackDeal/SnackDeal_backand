@@ -59,4 +59,56 @@ public interface AdminMainApiDocs {
     })
     @interface Dashboard {
     }
+
+    // 기간별 신규 회원가입 추이 (Chart.js)
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(summary = "대시보드 - 회원 차트",
+            description = "startDate ~ endDate(포함) 기간의 일자별 신규 회원가입 수를 반환 (관리자 전용, Chart.js 라인차트용)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "조회 기간이 올바르지 않음"),
+            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+    })
+    @interface MemberChart {
+    }
+
+    // 기간별 주문 수 추이 (Chart.js)
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(summary = "대시보드 - 주문 차트",
+            description = "startDate ~ endDate(포함) 기간의 일자별 주문 수를 반환 (관리자 전용, Chart.js 라인차트용)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "조회 기간이 올바르지 않음"),
+            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+    })
+    @interface OrderChart {
+    }
+
+    // 기간별 상품판매(매출액/판매수량) 추이 (Chart.js)
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(summary = "대시보드 - 상품판매 차트",
+            description = "startDate ~ endDate(포함) 기간의 일자별 매출액/판매수량을 반환 (취소·환불 제외, 관리자 전용, Chart.js 라인차트용)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "조회 기간이 올바르지 않음"),
+            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+    })
+    @interface ProductSalesChart {
+    }
+
+    // 기간별 쿠폰 발급/사용 추이 (Chart.js)
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(summary = "대시보드 - 쿠폰 차트",
+            description = "startDate ~ endDate(포함) 기간의 일자별 쿠폰 발급/사용 건수를 반환 (관리자 전용, Chart.js 라인차트용)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "조회 기간이 올바르지 않음"),
+            @ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+    })
+    @interface CouponChart {
+    }
 }
