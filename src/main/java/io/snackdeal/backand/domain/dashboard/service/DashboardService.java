@@ -14,6 +14,7 @@ import io.snackdeal.backand.domain.order.entity.OrderStatus;
 import io.snackdeal.backand.global.config.code.ResponseCode;
 import io.snackdeal.backand.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,7 @@ public class DashboardService {
     private final MemberRepository memberRepository;
     private final DashboardQueryRepository dashboardQueryRepository;
 
+    @Cacheable(cacheNames = "dashboard:summary", key = "T(java.time.LocalDate).now()")
     @Transactional(readOnly = true)
     public DashboardResponse getSummary() {
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
@@ -65,6 +67,7 @@ public class DashboardService {
     }
 
     // 기간별 신규 회원가입 추이
+    @Cacheable(cacheNames = "dashboard:memberChart", key = "#startDate + '_' + #endDate")
     @Transactional(readOnly = true)
     public MemberChartResponse getMemberChart(LocalDate startDate, LocalDate endDate) {
         validateRange(startDate, endDate);
@@ -82,6 +85,7 @@ public class DashboardService {
     }
 
     // 기간별 주문 수 추이
+    @Cacheable(cacheNames = "dashboard:orderChart", key = "#startDate + '_' + #endDate")
     @Transactional(readOnly = true)
     public OrderChartResponse getOrderChart(LocalDate startDate, LocalDate endDate) {
         validateRange(startDate, endDate);
@@ -99,6 +103,7 @@ public class DashboardService {
     }
 
     // 기간별 상품판매(매출액/판매수량) 추이 (취소/환불 제외)
+    @Cacheable(cacheNames = "dashboard:salesChart", key = "#startDate + '_' + #endDate")
     @Transactional(readOnly = true)
     public ProductSalesChartResponse getProductSalesChart(LocalDate startDate, LocalDate endDate) {
         validateRange(startDate, endDate);
@@ -126,6 +131,7 @@ public class DashboardService {
     }
 
     // 기간별 쿠폰 발급/사용 추이
+    @Cacheable(cacheNames = "dashboard:couponChart", key = "#startDate + '_' + #endDate")
     @Transactional(readOnly = true)
     public CouponChartResponse getCouponChart(LocalDate startDate, LocalDate endDate) {
         validateRange(startDate, endDate);
