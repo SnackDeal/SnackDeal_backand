@@ -24,7 +24,7 @@ public class CsController {
     private final CsService csService;
 
     @Operation(summary = "공지사항 목록 조회", description = "고객센터 공지사항 목록을 조회합니다.")
-    @GetMapping("/cs/notice")
+    @GetMapping("/cs/notice/list")
     public CommonResponse<Object> noticeList() {
         return CommonResponse.success(csService.findNoticeList());
     }
@@ -39,8 +39,6 @@ public class CsController {
     @GetMapping("/cs/qna/faq")
     public CommonResponse<List<FaqResponse>> faqList(@RequestParam(required = false) QnaType type) {
         return CommonResponse.success(csService.findFaqList(type));
-    public CommonResponse<List<FaqResponse>> faqList() {
-        return CommonResponse.success(csService.findFaqList());
     }
 
     @Operation(summary = "내 문의 목록 조회", description = "로그인 사용자의 1:1 문의 목록을 최신순으로 조회합니다.")

@@ -47,11 +47,6 @@ public class CsService {
         return faqs.stream().map(FaqResponse::from).toList();
     }
 
-    public Object findMyQnaList(String email) {
-    public List<FaqResponse> findFaqList() {
-        throw new BusinessException(ResponseCode.NOT_IMPLEMENTED);
-    }
-
     @Transactional(readOnly = true)
     public List<QnaSummaryResponse> findMyQnaList(Long memberId) {
         List<Qna> qnaList = qnaRepository.findAllByMemberIdAndDeletedAtIsNullOrderByCreatedAtDesc(memberId);
