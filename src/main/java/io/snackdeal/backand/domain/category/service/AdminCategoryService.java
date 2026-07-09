@@ -1,6 +1,6 @@
 package io.snackdeal.backand.domain.category.service;
 
-import io.snackdeal.backand.api.admin.category.dto.CategoryRequest;
+import io.snackdeal.backand.api.admin.category.dto.CategoryOrderRequest;
 import io.snackdeal.backand.api.admin.category.dto.CategoryResponse;
 import io.snackdeal.backand.domain.category.entity.Category;
 import io.snackdeal.backand.domain.category.repository.CategoryRepository;
@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -20,45 +22,51 @@ public class AdminCategoryService {
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> findList() {
-        return categoryRepository.findAllByDeletedAtIsNullOrderBySortOrderAscIdAsc()
+        return categoryRepository.findAllByOrderBySortOrderAscIdAsc()
                 .stream()
                 .map(CategoryResponse::from)
                 .toList();
     }
 
     @Transactional
-    public CategoryResponse save(CategoryRequest request) {
-        if (categoryRepository.existsByName(request.name())) {
-            throw new BusinessException(ResponseCode.DUPLICATE_CATEGORY);
+    public void updateOrder(CategoryOrderRequest request) {
+        List<CategoryOrderRequest.CategoryOrderItem> items = request.categoryOrders();
+
+        Set<Long> categoryIds = new HashSet<>();
+        Set<Integer> sortOrders = new HashSet<>();
+
+        for (CategoryOrderRequest.CategoryOrderItem item : items) {
+            if (item.categoryId() == null || item.sortOrder() == null || item.sortOrder() < 0) {
+                throw new BusinessException(ResponseCode.VALIDATION_FAILED);
+            }
+            if (!categoryIds.add(item.categoryId())) {
+                throw new BusinessException(ResponseCode.DUPLICATE_CATEGORY_ORDER_ID);
+            }
+            if (!sortOrders.add(item.sortOrder())) {
+                throw new BusinessException(ResponseCode.DUPLICATE_CATEGORY_SORT_ORDER);
+            }
         }
 
-        Category category = Category.builder()
-                .name(request.name())
-                .sortOrder(request.sortOrder())
-                .build();
-
-        return CategoryResponse.from(categoryRepository.save(category));
-    }
-
-    @Transactional
-    public CategoryResponse update(Long id, CategoryRequest request) {
-        Category category = categoryRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new BusinessException(ResponseCode.CATEGORY_NOT_FOUND));
-
-        if (categoryRepository.existsByNameAndIdNot(request.name(), id)) {
-            throw new BusinessException(ResponseCode.DUPLICATE_CATEGORY);
+        if (categoryRepository.count() != items.size()) {
+            throw new BusinessException(ResponseCode.CATEGORY_ORDER_SIZE_MISMATCH);
         }
 
-        category.update(request.name(), request.sortOrder());
-
-        return CategoryResponse.from(category);
+        for (CategoryOrderRequest.CategoryOrderItem item : items) {
+            Category category = categoryRepository.findById(item.categoryId())
+                    .orElseThrow(() -> new BusinessException(ResponseCode.CATEGORY_NOT_FOUND));
+            category.setSortOrder(item.sortOrder());
+        }
     }
 
-    @Transactional
+    public Object save(Object request) {
+        throw new BusinessException(ResponseCode.NOT_IMPLEMENTED);
+    }
+
+    public Object update(Long id, Object request) {
+        throw new BusinessException(ResponseCode.NOT_IMPLEMENTED);
+    }
+
     public void delete(Long id) {
-        Category category = categoryRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new BusinessException(ResponseCode.CATEGORY_NOT_FOUND));
-
-        category.delete();
+        throw new BusinessException(ResponseCode.NOT_IMPLEMENTED);
     }
 }
