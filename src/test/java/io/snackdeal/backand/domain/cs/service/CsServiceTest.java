@@ -1,9 +1,11 @@
 package io.snackdeal.backand.domain.cs.service;
 
 import io.snackdeal.backand.api.user.cs.dto.*;
+import io.snackdeal.backand.domain.cs.entity.Notice;
 import io.snackdeal.backand.domain.cs.entity.Qna;
 import io.snackdeal.backand.domain.cs.entity.QnaAnswer;
 import io.snackdeal.backand.domain.cs.entity.QnaType;
+import io.snackdeal.backand.domain.cs.repository.NoticeRepository;
 import io.snackdeal.backand.domain.cs.repository.QnaAnswerRepository;
 import io.snackdeal.backand.domain.cs.repository.QnaRepository;
 import io.snackdeal.backand.domain.cs.service.CsService;
@@ -51,6 +53,9 @@ class CsServiceTest {
 
     @Mock
     private FaqRepository faqRepository;
+
+    @Mock
+    private NoticeRepository noticeRepository;
 
     private Qna createQna(Long id, Long memberId, boolean answered) {
         Qna qna = Qna.builder()
@@ -147,6 +152,53 @@ class CsServiceTest {
         // then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).type()).isEqualTo(QnaType.ORDER);
+    }
+
+    @Test
+    @DisplayName("findNoticeList - 고정글이 위로 오도록 정렬되어 조회된다")
+    void findNoticeList_Success() {
+        // given
+        Notice pinned = Notice.builder().title("점검 안내").content("정기 점검 안내").isPinned(true).build();
+        ReflectionTestUtils.setField(pinned, "id", 1L);
+        Notice normal = Notice.builder().title("이벤트 안내").content("여름 이벤트 안내").isPinned(false).build();
+        ReflectionTestUtils.setField(normal, "id", 2L);
+        given(noticeRepository.findAllByDeletedAtIsNullOrderByIsPinnedDescCreatedAtDescIdDesc())
+                .willReturn(List.of(pinned, normal));
+
+        // when
+        List<NoticeSummaryResponse> result = csService.findNoticeList();
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).id()).isEqualTo(1L);
+        assertThat(result.get(0).pinned()).isTrue();
+    }
+
+    @Test
+    @DisplayName("findNoticeById - 공지사항 상세 조회 성공")
+    void findNoticeById_Success() {
+        // given
+        Notice notice = Notice.builder().title("점검 안내").content("정기 점검 안내").isPinned(true).build();
+        ReflectionTestUtils.setField(notice, "id", 1L);
+        given(noticeRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(notice));
+
+        // when
+        NoticeResponse response = csService.findNoticeById(1L);
+
+        // then
+        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.title()).isEqualTo("점검 안내");
+    }
+
+    @Test
+    @DisplayName("findNoticeById - 존재하지 않으면 예외")
+    void findNoticeById_NotFound() {
+        // given
+        given(noticeRepository.findByIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> csService.findNoticeById(999L))
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
