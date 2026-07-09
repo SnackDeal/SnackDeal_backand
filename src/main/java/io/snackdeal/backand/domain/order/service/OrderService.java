@@ -155,7 +155,8 @@ public class OrderService {
                 .build());
 
         return new OrderPrepareResponse(
-                order.getOrderNumber(), finalAmount, portoneStoreId, portoneChannelKey,
+                order.getOrderNumber(), productAmount, shippingFee, discountAmount, finalAmount,
+                portoneStoreId, portoneChannelKey,
                 member.getEmail(), member.getName(), member.getPhone());
     }
 

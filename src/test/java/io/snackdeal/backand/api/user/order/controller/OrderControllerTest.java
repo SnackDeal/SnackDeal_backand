@@ -46,7 +46,8 @@ class OrderControllerTest {
                 List.of(new OrderItemRequest(1L, 2)), null,
                 new ShippingRequest("홍길동", "01012345678", "06133", "서울", null, null), null);
         OrderPrepareResponse expected = new OrderPrepareResponse(
-                "ORD-1", 12000L, "store-1", "channel-key-1", "u@test.com", "홍길동", "01011112222");
+                "ORD-1", 9000L, 3000L, 0L, 12000L, "store-1", "channel-key-1",
+                "u@test.com", "홍길동", "01011112222");
         when(orderService.prepare(eq("u@test.com"), eq(request))).thenReturn(expected);
 
         CommonResponse<OrderPrepareResponse> response = orderController.prepare(details, request);
