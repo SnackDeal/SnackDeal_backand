@@ -29,7 +29,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:test-config.properties")
+@TestPropertySource(
+        locations = "classpath:test-config.properties",
+        properties = {
+                "custom.cloud.s3.access-key=test-access-key",
+                "custom.cloud.s3.secret-key=test-secret-key",
+                "custom.cloud.s3.bucket=test-bucket"
+        }
+)
 @WithMockUser(roles = "ADMIN")
 class AdminCategoryControllerTest {
 
