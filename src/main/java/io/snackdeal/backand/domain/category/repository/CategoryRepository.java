@@ -9,12 +9,14 @@ import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    @Query("SELECT c FROM Category c ORDER BY c.sortOrder ASC, c.id ASC")
+    @Query("SELECT c FROM Category c WHERE c.deletedAt IS NULL ORDER BY c.sortOrder ASC, c.id ASC")
     List<Category> findAllByOrderBySortOrderAscIdAsc();
 
     Optional<Category> findByIdAndDeletedAtIsNull(Long id);
 
-    boolean existsByName(String name);
+    long countByDeletedAtIsNull();
 
-    boolean existsByNameAndIdNot(String name, Long id);
+    boolean existsByNameAndDeletedAtIsNull(String name);
+
+    boolean existsByNameAndIdNotAndDeletedAtIsNull(String name, Long id);
 }

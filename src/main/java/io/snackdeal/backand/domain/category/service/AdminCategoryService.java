@@ -48,12 +48,12 @@ public class AdminCategoryService {
             }
         }
 
-        if (categoryRepository.count() != items.size()) {
+        if (categoryRepository.countByDeletedAtIsNull() != items.size()) {
             throw new BusinessException(ResponseCode.CATEGORY_ORDER_SIZE_MISMATCH);
         }
 
         for (CategoryOrderRequest.CategoryOrderItem item : items) {
-            Category category = categoryRepository.findById(item.categoryId())
+            Category category = categoryRepository.findByIdAndDeletedAtIsNull(item.categoryId())
                     .orElseThrow(() -> new BusinessException(ResponseCode.CATEGORY_NOT_FOUND));
             category.setSortOrder(item.sortOrder());
         }
@@ -69,7 +69,7 @@ public class AdminCategoryService {
 
     @Transactional
     public CategoryResponse save(CategoryRequest request) {
-        if (categoryRepository.existsByName(request.name())) {
+        if (categoryRepository.existsByNameAndDeletedAtIsNull(request.name())) {
             throw new BusinessException(ResponseCode.DUPLICATE_CATEGORY);
         }
 
@@ -86,7 +86,7 @@ public class AdminCategoryService {
         Category category = categoryRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new BusinessException(ResponseCode.CATEGORY_NOT_FOUND));
 
-        if (categoryRepository.existsByNameAndIdNot(request.name(), id)) {
+        if (categoryRepository.existsByNameAndIdNotAndDeletedAtIsNull(request.name(), id)) {
             throw new BusinessException(ResponseCode.DUPLICATE_CATEGORY);
         }
 

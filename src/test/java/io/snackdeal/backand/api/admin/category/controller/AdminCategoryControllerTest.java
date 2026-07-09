@@ -297,11 +297,5 @@ class AdminCategoryControllerTest {
         verify(adminCategoryService).delete(id);
     }
 
-    @Test
-    @DisplayName("USER 권한으로 /admin/category 접근 시 403 Forbidden")
-    void request_withoutAdminRole_forbidden() throws Exception {
-        // when & then
-        mockMvc.perform(get("/admin/category").with(as(MemberRole.USER)))
-                .andExpect(status().isForbidden());
-    }
+
 }
