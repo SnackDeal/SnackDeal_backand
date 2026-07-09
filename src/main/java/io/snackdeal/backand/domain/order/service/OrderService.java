@@ -15,11 +15,8 @@ import io.snackdeal.backand.api.user.order.dto.RefundRequest;
 import io.snackdeal.backand.api.user.order.dto.RefundResponse;
 import io.snackdeal.backand.api.user.order.dto.ShippingRequest;
 import io.snackdeal.backand.api.user.order.dto.ShippingResponse;
-import io.snackdeal.backand.domain.coupon.entity.Coupon;
-import io.snackdeal.backand.domain.coupon.entity.UserCoupon;
-import io.snackdeal.backand.domain.coupon.entity.UserCouponStatus;
-import io.snackdeal.backand.domain.coupon.repository.CouponRepository;
-import io.snackdeal.backand.domain.coupon.repository.UserCouponRepository;
+import io.snackdeal.backand.domain.coupon.dto.CouponDiscountResult;
+import io.snackdeal.backand.domain.coupon.service.CouponService;
 import io.snackdeal.backand.domain.delivery.entity.Delivery;
 import io.snackdeal.backand.domain.delivery.repository.DeliveryRepository;
 import io.snackdeal.backand.domain.member.entity.Member;
@@ -47,7 +44,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,11 +76,10 @@ public class OrderService {
     private final ShippingRepository shippingRepository;
     private final ShippingPolicyRepository shippingPolicyRepository;
     private final ProductRepository productRepository;
-    private final UserCouponRepository userCouponRepository;
-    private final CouponRepository couponRepository;
     private final DeliveryRepository deliveryRepository;
     private final MemberRepository memberRepository;
     private final PortOneClient portOneClient;
+    private final CouponService couponService;
 
     // 프론트 결제창(requestPayment)에 필요한 공개값 prepare 응답으로 함께 내려준다.
     @org.springframework.beans.factory.annotation.Value("${custom.portone.store-id:}")
@@ -115,8 +110,10 @@ public class OrderService {
         }
 
         long shippingFee = resolveShippingFee(productAmount);
-        long discountAmount = calculateDiscount(member, request.userCouponId(), productAmount);
-        long finalAmount = Math.max(0L, productAmount + shippingFee - discountAmount);
+        CouponDiscountResult discount = couponService.calculateDiscountForOrder(
+                member.getId(), request.userCouponId(), productAmount);
+        long discountAmount = discount.discountAmount();
+        long finalAmount = discount.finalAmount() + shippingFee;
 
         // 주문 저장 (PENDING_PAYMENT)
         Orders order = ordersRepository.save(Orders.builder()
@@ -204,9 +201,15 @@ public class OrderService {
             product.decreaseStock(item.getQuantity());
         }
 
-        // 사용 쿠폰 처리 (USED)
+        // 사용 쿠폰 처리 (USED) 검증/락/USED 처리는 CouponService에 위임 실패 시 트랜잭션 롤백으로 원자 처리
         if (order.getUserCouponId() != null) {
-            userCouponRepository.findById(order.getUserCouponId()).ifPresent(UserCoupon::use);
+            try {
+                couponService.useCouponForOrder(
+                        member.getId(), order.getUserCouponId(), order.getProductAmount());
+            } catch (BusinessException e) {
+                portOneClient.cancelPayment(request.paymentId(), "쿠폰 사용 처리 실패: " + e.getMessage());
+                throw e;
+            }
         }
 
         // 주문/결제 확정
@@ -266,7 +269,7 @@ public class OrderService {
 
         Shipping shipping = shippingRepository.findByOrderId(order.getId()).orElse(null);
         Payment payment = paymentRepository.findByOrderId(order.getId()).orElse(null);
-        String couponName = resolveCouponName(order.getUserCouponId());
+        String couponName = couponService.resolveCouponName(order.getUserCouponId());
 
         return new OrderResponse(
                 order.getId(), order.getOrderNumber(), order.getOrderedAt(), order.getStatus(),
@@ -361,48 +364,6 @@ public class OrderService {
             throw new BusinessException(ResponseCode.INPUT_REQUIRED);
         }
         return request.shipping();
-    }
-
-    /*
-     * 쿠폰 할인 계산 + 유효성 검증.
-     * 본인 쿠폰/ACTIVE/유효기간/최소주문금액을 모두 만족해야 하며, 하나라도 어기면 409(조건 미달).
-     * PERCENT 는 상품총액 기준, 할인액은 상품총액을 넘지 않도록 캡을 씌운다.
-     */
-    private long calculateDiscount(Member member, Long userCouponId, long productAmount) {
-        if (userCouponId == null) {
-            return 0L;
-        }
-        UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
-                .orElseThrow(() -> new BusinessException(ResponseCode.COUPON_NOT_FOUND));
-        if (!userCoupon.getMemberId().equals(member.getId())
-                || userCoupon.getStatus() != UserCouponStatus.ACTIVE) {
-            throw new BusinessException(ResponseCode.COUPON_CONDITION_NOT_MET);
-        }
-        Coupon coupon = couponRepository.findById(userCoupon.getCouponId())
-                .orElseThrow(() -> new BusinessException(ResponseCode.COUPON_NOT_FOUND));
-
-        LocalDateTime now = LocalDateTime.now();
-        if ((coupon.getValidFrom() != null && now.isBefore(coupon.getValidFrom()))
-                || (coupon.getValidUntil() != null && now.isAfter(coupon.getValidUntil()))
-                || productAmount < coupon.getMinOrderPrice()) {
-            throw new BusinessException(ResponseCode.COUPON_CONDITION_NOT_MET);
-        }
-
-        long discount = switch (coupon.getDiscountType()) {
-            case FIXED -> coupon.getDiscountValue();
-            case PERCENT -> productAmount * coupon.getDiscountValue() / 100L;
-        };
-        return Math.min(discount, productAmount);
-    }
-
-    private String resolveCouponName(Long userCouponId) {
-        if (userCouponId == null) {
-            return null;
-        }
-        return userCouponRepository.findById(userCouponId)
-                .flatMap(uc -> couponRepository.findById(uc.getCouponId()))
-                .map(Coupon::getName)
-                .orElse(null);
     }
 
     // 주문번호: ORD-yyyyMMdd-XXXXX (5자리 난수) unique 제약으로 충돌 시 재시도
