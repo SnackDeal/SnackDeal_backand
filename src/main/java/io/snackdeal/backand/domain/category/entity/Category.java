@@ -36,4 +36,15 @@ public class Category {
         this.sortOrder = sortOrder;
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void update(String name, Integer sortOrder) {
+        this.name = name;
+        this.sortOrder = sortOrder;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 }
