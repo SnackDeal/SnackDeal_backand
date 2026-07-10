@@ -42,7 +42,7 @@ custom:
   jwt:
     secrets:
       app-key: ${JWT_APP_KEY}
-    expiration: ${JWT_EXPIRATION:900000}
+    expiration: ${JWT_EXPIRATION:3600000}
     refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
   mail:

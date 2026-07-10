@@ -3,16 +3,23 @@ package io.snackdeal.backand.api.user.order.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * 주문 준비 응답 프론트가 이 값으로 포트원 V2 결제창을 띄운다.
- * paymentId(=주문번호)·결제 예정 금액(amount)·구매자 정보와 함께,
- * 결제창에 필요한 storeId/channelKey(공개값, 서버 설정에서 주입)를 내려줘 프론트 하드코딩을 없앤다.
+ * 주문 준비 응답. 프론트가 주문서 결제정보를 표시하고 포트원 결제창을 연다.
  */
 @Schema(description = "주문 준비 응답")
 public record OrderPrepareResponse(
         @Schema(description = "주문번호 (포트원 결제창 paymentId로 그대로 사용)", example = "ORD-20260705-00123")
         String paymentId,
 
-        @Schema(description = "결제 예정 금액 (상품총액 + 배송비 - 할인)", example = "9000")
+        @Schema(description = "상품금액", example = "1400")
+        Long productAmount,
+
+        @Schema(description = "배송비", example = "0")
+        Long shippingFee,
+
+        @Schema(description = "할인금액", example = "0")
+        Long discountAmount,
+
+        @Schema(description = "결제 예정 금액 (상품금액 + 배송비 - 할인)", example = "1400")
         Long amount,
 
         @Schema(description = "포트원 Store ID (결제창 storeId 파라미터)", example = "store-abc123")
@@ -27,7 +34,7 @@ public record OrderPrepareResponse(
         @Schema(description = "구매자 이름", example = "홍길동")
         String buyerName,
 
-        @Schema(description = "구매자 휴대폰번호", example = "01011112222")
+        @Schema(description = "구매자 전화번호", example = "01011112222")
         String buyerTel
 ) {
 }

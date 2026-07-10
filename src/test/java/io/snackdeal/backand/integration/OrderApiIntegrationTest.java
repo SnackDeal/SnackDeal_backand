@@ -94,11 +94,14 @@ class OrderApiIntegrationTest {
 
         String prepareResult = mockMvc.perform(post("/order/prepare").with(as(user))
                         .contentType(MediaType.APPLICATION_JSON).content(prepareBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.amount").value(9000))
-                .andExpect(jsonPath("$.data.buyerEmail").value("buyer@test.com"))
-                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$.success").value(true))
+                 .andExpect(jsonPath("$.data.productAmount").value(9000))
+                 .andExpect(jsonPath("$.data.amount").value(9000))
+                 .andExpect(jsonPath("$.data.shippingFee").value(0))
+                 .andExpect(jsonPath("$.data.discountAmount").value(0))
+                 .andExpect(jsonPath("$.data.buyerEmail").value("buyer@test.com"))
+                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
         String paymentId = json(prepareResult).get("data").get("paymentId").asString();
 
