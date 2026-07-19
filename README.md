@@ -22,10 +22,8 @@
 - [도메인 구조](#도메인-구조)
 - [핵심 설계 결정](#핵심-설계-결정)
 - [API 요약](#api-요약)
-- [로컬 실행](#로컬-실행)
 - [구현 현황](#구현-현황)
 - [트러블슈팅](#트러블슈팅)
-- [팀](#팀)
 
 ---
 
@@ -59,7 +57,7 @@
 | Persistence | Spring Data JPA, MySQL 8 |
 | Cache / Session | Redis 7 |
 | Build | Gradle |
-| Infra | Docker, Docker Compose, Nginx Proxy Manager |
+| Infra | AWS EC2, Docker, Docker Compose, Nginx Proxy Manager |
 | CI/CD | GitHub Actions (self-hosted runner), GHCR |
 | Monitoring | Prometheus, Grafana, mysql-exporter, redis-exporter |
 | Payment | PortOne SDK → TossPayments (테스트 모드) |
@@ -75,9 +73,22 @@ React (SPA)  →  Nginx (프록시 · SSL)  →  Spring Boot (REST API)  →  My
                                                 └── POST /chatbot/ask → AI 서비스 (FastAPI · Groq · LangGraph)
 ```
 
-- **CI/CD** — git push → Gradle 빌드 → Docker 이미지(GHCR) → `deploy.sh` 배포
 - **Auth** — JWT + Redis 세션 · Google OAuth2
 - **Monitoring** — Prometheus 수집 → Grafana 시각화
+
+### CI/CD
+
+```
+git push
+  └→ GitHub Actions (self-hosted runner)
+       └→ Gradle 빌드
+            └→ Docker 이미지 빌드 · GHCR 푸시
+                 └→ AWS EC2에서 deploy.sh 실행 → Docker Compose 재기동
+```
+
+백엔드 · 프론트엔드 · AI가 서로 다른 런타임을 쓰기 때문에, 각 리포에서 개별로 Docker 이미지를 만들어
+AWS 인스턴스 위의 동일한 Docker Compose 스택에 배포하는 방식으로 파이프라인을 통일했습니다.
+Docker Compose가 MySQL · Redis · 앱 · AI 서비스를 일괄 기동하고, Nginx Proxy Manager가 리버스 프록시와 SSL 인증서를 담당합니다.
 
 > 아키텍처 다이어그램 이미지: `docs/architecture.png`
 
@@ -85,7 +96,8 @@ React (SPA)  →  Nginx (프록시 · SSL)  →  Spring Boot (REST API)  →  My
 
 ## ERD
 
-![ERD](docs/erd.png)
+<img width="1140" height="912" alt="image" src="https://github.com/user-attachments/assets/1c7409f6-7fb7-406c-95db-5e1263e56acc" />
+
 
 회원 · 상품 · 주문(3테이블 분리) · 배송지 · 쿠폰 게시판/쿠폰함 구조입니다.
 
@@ -212,50 +224,6 @@ Optional<Product> findByIdForUpdate(Long id);
 
 ---
 
-## 로컬 실행
-
-### 요구 사항
-
-- JDK 25
-- Docker / Docker Compose
-
-### 1. 환경 변수 설정
-
-```bash
-cp .env.example .env
-```
-
-```dotenv
-# .env.example
-DB_URL=jdbc:mysql://localhost:3306/snackdeal
-DB_USERNAME=
-DB_PASSWORD=
-REDIS_HOST=localhost
-REDIS_PORT=6379
-JWT_SECRET=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-PORTONE_API_KEY=
-PORTONE_API_SECRET=
-AI_SERVICE_URL=http://localhost:8000
-```
-
-### 2. 인프라 기동
-
-```bash
-docker compose up -d   # MySQL · Redis · (선택) AI 서비스
-```
-
-### 3. 애플리케이션 실행
-
-```bash
-./gradlew bootRun
-```
-
-기본 포트: `http://localhost:8080`
-
----
-
 ## 구현 현황
 
 - [x] 회원가입 / 로그인 / JWT + Redis 세션 / Google OAuth2
@@ -266,7 +234,7 @@ docker compose up -d   # MySQL · Redis · (선택) AI 서비스
 - [x] 공지 · FAQ · QNA
 - [x] 관리자 대시보드 + Redis 캐싱
 - [x] 배치 스케줄러 2종
-- [x] Docker Compose · GitHub Actions CI/CD
+- [x] Docker Compose · GitHub Actions CI/CD · AWS 자동 배포
 - [x] Prometheus / Grafana 모니터링
 - [ ] 토스페이먼츠 **정식 연동** (현재 테스트 모드)
 - [ ] 재고 차감 · 쿠폰 검증 비즈니스 로직 마무리
@@ -296,7 +264,7 @@ docker compose up -d   # MySQL · Redis · (선택) AI 서비스
 <summary><b>ISSUE 03 — CI/CD 파이프라인 파편화</b></summary>
 
 **문제** · 백엔드 · 프론트엔드 · AI가 서로 다른 런타임과 리포를 사용해 배포가 파편화됨
-**해결** · GitHub Actions로 빌드 후 Docker 이미지를 만들어 자동 배포하는 파이프라인으로 통일
+**해결** · GitHub Actions로 빌드 후 Docker 이미지를 만들어 AWS에 자동 배포하는 파이프라인으로 통일. 세 서비스 모두 이미지 단위로 표준화되어 배포 절차가 동일해짐
 </details>
 
 <details>
